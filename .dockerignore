@@ -1,0 +1,15 @@
+# Only what the server needs at runtime goes into the image.
+.git
+.github
+.vscode
+.venv
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.ruff_cache
+.DS_Store
+.env
+data/conversations
+docs
+tests
+requirements-dev.txt

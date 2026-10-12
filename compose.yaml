@@ -1,0 +1,52 @@
+# Duckoder and its language model: `docker compose up -d`, then open port 8000 of this machine
+# from any device on the local network. The first start downloads the model, about 4.7 GB, into
+# the models volume; later starts find it there and work offline.
+name: duckoder
+
+services:
+  app:
+    build: .
+    image: duckoder
+    ports:
+      - "8000:8000"
+    environment:
+      APP_OLLAMA_URL: ${APP_OLLAMA_URL:-http://ollama:11434}
+      APP_OLLAMA_MODEL: ${APP_OLLAMA_MODEL:-qwen2.5-coder:7b}
+    # Lets APP_OLLAMA_URL=http://host.docker.internal:11434 reach an Ollama installed on the
+    # host, on Linux as on Docker Desktop.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - conversations:/app/data/conversations
+    depends_on:
+      model:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:0.40.3
+    volumes:
+      - models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # Downloads the model once and exits; with the model already in the volume it exits at once,
+  # without going to the internet.
+  model:
+    image: ollama/ollama:0.40.3
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      MODEL: ${APP_OLLAMA_MODEL:-qwen2.5-coder:7b}
+    entrypoint: ["sh", "-c", 'ollama show "$$MODEL" > /dev/null 2>&1 || ollama pull "$$MODEL"']
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  conversations:
+  models:

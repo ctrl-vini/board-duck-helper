@@ -16,6 +16,8 @@ Duckoder is the subject of my undergraduate thesis (TCC); the thesis itself is i
 - Python 3.11 or newer
 - Ollama
 
+Or only Docker, as in [Running with Docker](#running-with-docker).
+
 ## Setup
 
 ```bash
@@ -57,6 +59,35 @@ The log shows the address to open from any device on the local network: that pag
 interface students use. The interactive API documentation is available at `/docs`. The
 interface files are sent with `Cache-Control: no-cache`, so browsers check for a newer version on
 every load and an updated interface reaches students with a plain reload.
+
+## Running with Docker
+
+```bash
+docker compose up -d
+```
+
+`compose.yaml` starts three services: `app`, the web server built from the `Dockerfile`;
+`ollama`, the language model server; and `model`, which downloads the model into the `models`
+volume on the first start, about 4.7 GB, and then exits. Follow the download with
+`docker compose logs -f model`. Later starts find the model in the volume and need no internet.
+
+The page is then on port 8000 of the machine running Docker, such as `http://192.168.0.10:8000`;
+the address in the server log is the container's own. Conversations are kept in the
+`conversations` volume, so they survive `docker compose down` and new images;
+`docker compose down -v` deletes them, along with the model.
+
+`APP_OLLAMA_MODEL` picks another model for both the server and the download, such as
+`APP_OLLAMA_MODEL=llama3.1:8b docker compose up -d`; the other settings in
+[Configuration](#configuration) go in the `environment` of the `app` service.
+
+Without a GPU the model runs on the CPU, which is much slower:
+
+- On Linux with an NVIDIA GPU and the NVIDIA Container Toolkit, add the GPU file:
+  `docker compose -f compose.yaml -f compose.gpu.yaml up -d`.
+- On a Mac, Docker Desktop does not give containers the Apple GPU, so use Ollama installed on the
+  Mac and run only the web server in Docker:
+  `APP_OLLAMA_URL=http://host.docker.internal:11434 docker compose up -d --no-deps app`. The same
+  works on Linux with Ollama listening beyond loopback (`OLLAMA_HOST=0.0.0.0`).
 
 ## The interface
 
