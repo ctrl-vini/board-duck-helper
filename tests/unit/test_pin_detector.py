@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.schemas.board import BoardProfile, Component, ComponentPin
+from app.schemas.board import BoardProfile, Component, ComponentPin, HeaderPin, Pinout
 from app.services.pin_detector import detect_pin_usage, find_gpios
 
 BUTTON_ON_4 = "const int BUTTON_PIN = 4;\nvoid setup() { pinMode(BUTTON_PIN, INPUT_PULLUP); }"
@@ -82,6 +82,23 @@ def test_resolves_the_board_pin_names() -> None:
     code = "void setup() { pinMode(LED_BUILTIN, OUTPUT); Wire.begin(SDA, SCL); }"
 
     assert find_gpios(code, {"LED_BUILTIN": 2, "SDA": 21, "SCL": 22}) == {2, 21, 22}
+
+
+def test_resolves_constants_set_to_pin_names_and_to_other_constants() -> None:
+    code = """
+    const int POT_PIN = A0;
+    #define LED LED_BUILTIN
+    const int ALARM_LED = LED;
+    void loop() { analogRead(POT_PIN); digitalWrite(ALARM_LED, HIGH); }
+    """
+
+    assert find_gpios(code, {"A0": 14, "LED_BUILTIN": 13}) == {13, 14}
+
+
+def test_ignores_constants_set_to_names_that_are_not_pins() -> None:
+    code = "const int ON = HIGH;\n#define DHTTYPE DHT22\nvoid setup() { pinMode(ON, OUTPUT); }"
+
+    assert find_gpios(code, {"A0": 14}) == set()
 
 
 def test_i2c_without_pins_uses_the_board_defaults() -> None:
@@ -177,3 +194,22 @@ def test_pins_that_trade_places_are_renamed_in_the_wiring(board_profile: BoardPr
     usage = detect_pin_usage(after, profile, [before])
 
     assert usage.components[0].wiring == "SDA no GPIO 22 e SCL no GPIO 21."
+
+
+def test_a_moved_pin_is_renamed_by_its_header_label(board_profile: BoardProfile) -> None:
+    pinout = Pinout(
+        left=[HeaderPin(label="D2", gpio=2), HeaderPin(label="D3", gpio=3)],
+        right=[HeaderPin(label="GND")],
+    )
+    button = Component(
+        name="Botão",
+        type="entrada digital",
+        pins=[ComponentPin(gpio=2)],
+        wiring="Um terminal no D2 e o outro no GND.",
+    )
+    profile = board_profile.model_copy(update={"components": [button], "pinout": pinout})
+    before = "const int BUTTON_PIN = 2;\nvoid setup() { pinMode(BUTTON_PIN, INPUT_PULLUP); }"
+
+    usage = detect_pin_usage(before.replace("= 2;", "= 3;"), profile, [before])
+
+    assert usage.components[0].wiring == "Um terminal no D3 e o outro no GND."

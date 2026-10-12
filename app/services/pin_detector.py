@@ -22,11 +22,13 @@ COMMENT_OR_STRING = re.compile(
 )
 INTEGER_TYPE = r"(?:int|unsigned|short|long|byte|size_t|gpio_num_t|u?int(?:8|16|32)_t)"
 PIN_VALUE = r"(?:\d+|GPIO_NUM_\d+)"
+# A constant is set to a number or to a name already known, such as A0 or another constant.
+CONSTANT_VALUE = r"(?:\d+|[A-Za-z_]\w*)"
 DEFINED_CONSTANT = re.compile(
-    rf"^\s*#\s*define\s+(?P<name>\w+)\s+\(?(?P<value>{PIN_VALUE})\)?\s*$", re.MULTILINE
+    rf"^\s*#\s*define\s+(?P<name>\w+)\s+\(?(?P<value>{CONSTANT_VALUE})\)?\s*$", re.MULTILINE
 )
 DECLARED_CONSTANT = re.compile(
-    rf"\b{INTEGER_TYPE}\s+(?P<name>\w+)\s*=\s*(?P<value>{PIN_VALUE})\s*[;,)]"
+    rf"\b{INTEGER_TYPE}\s+(?P<name>\w+)\s*=\s*(?P<value>{CONSTANT_VALUE})\s*[;,)]"
 )
 DECLARED_ARRAY = re.compile(
     rf"\b{INTEGER_TYPE}\s+(?P<name>\w+)\s*\[[^\]]*\]\s*=\s*\{{(?P<values>[^}}]*)\}}"
@@ -81,8 +83,8 @@ I2C_PINS_GIVEN = re.compile(r"\bWire\.begin\s*\(\s*[^\s)]")
 DEFAULT_I2C_PIN_NAMES = ("SDA", "SCL")
 CAST_PREFIX = re.compile(r"^\(\s*\w+\s*\)\s*")
 NAME_OR_ELEMENT = re.compile(r"(?P<name>[A-Za-z_]\w*)(?P<element>\s*\[.*\])?")
-# How wiring texts refer to a pin, so a moved pin can be renamed in them.
-GPIO_MENTION = re.compile(r"\bGPIO (\d+)\b")
+# Header label for a GPIO missing from the drawn header, such as the Mega's pins 22 to 53.
+FALLBACK_LABEL = "D{gpio}"
 
 # A component pin of the profile: (index of the component, index of the pin).
 Slot = tuple[int, int]
@@ -128,7 +130,7 @@ def detect_pin_usage(
             if index == component_index
         }
         if gpio_by_pin:
-            moved = _move_pins(component, gpio_by_pin)
+            moved = _move_pins(component, gpio_by_pin, _label_by_gpio(profile))
             components.append(moved)
             moves += _moves_between(component, moved)
     return PinUsage(
@@ -169,23 +171,40 @@ def _place(code: str, profile: BoardProfile, known_names: Mapping[str, Slot]) ->
     return Placement(gpio_by_slot, slot_by_name, unlisted_gpios)
 
 
-def _move_pins(component: Component, gpio_by_pin: Mapping[int, int]) -> Component:
-    """The component wired to the GPIOs the code uses, with its wiring text to match."""
+def _move_pins(
+    component: Component, gpio_by_pin: Mapping[int, int], label_by_gpio: Mapping[int, str]
+) -> Component:
+    """The component wired to the GPIOs the code uses, with its wiring text to match.
+
+    Wiring texts name a pin as "GPIO 4" or by its header label, such as "D4" or "A0"; both are
+    renamed.
+    """
     pins = [
         pin.model_copy(update={"gpio": gpio_by_pin.get(index, pin.gpio)})
         for index, pin in enumerate(component.pins)
     ]
-    new_gpio_by_old = {
-        old.gpio: new.gpio for old, new in zip(component.pins, pins, strict=True) if old != new
-    }
+    renames: dict[str, str] = {}
+    for old, new in zip(component.pins, pins, strict=True):
+        if old.gpio != new.gpio:
+            renames[f"GPIO {old.gpio}"] = f"GPIO {new.gpio}"
+            if old.gpio in label_by_gpio:
+                new_label = label_by_gpio.get(new.gpio, FALLBACK_LABEL.format(gpio=new.gpio))
+                renames[label_by_gpio[old.gpio]] = new_label
     wiring = component.wiring
-    if wiring and new_gpio_by_old:
-        # One pass, so two pins that trade places are both renamed correctly.
-        wiring = GPIO_MENTION.sub(
-            lambda match: f"GPIO {new_gpio_by_old.get(int(match.group(1)), match.group(1))}",
-            wiring,
-        )
+    if wiring and renames:
+        # One pass, so two pins that trade places are both renamed correctly; longer names first,
+        # so "D12" is not read as "D1".
+        names = "|".join(re.escape(name) for name in sorted(renames, key=len, reverse=True))
+        mention = re.compile(rf"(?<!\w)(?:{names})(?!\w)")
+        wiring = mention.sub(lambda match: renames[match.group(0)], wiring)
     return component.model_copy(update={"pins": pins, "wiring": wiring})
+
+
+def _label_by_gpio(profile: BoardProfile) -> dict[int, str]:
+    if profile.pinout is None:
+        return {}
+    header = (*profile.pinout.left, *profile.pinout.right)
+    return {pin.gpio: pin.label for pin in header if pin.gpio is not None}
 
 
 def _moves_between(original: Component, moved: Component) -> list[PinMove]:
@@ -200,7 +219,7 @@ def _pin_uses(code: str, pin_names: Mapping[str, int] | None) -> list[PinUse]:
     """Every pin argument of the code, resolved to GPIOs, in the order the code passes them."""
     source = COMMENT_OR_STRING.sub(" ", code)
     constants = {name: {gpio} for name, gpio in (pin_names or {}).items()}
-    constants.update(_find_constants(source))
+    _add_constants(source, constants)
     uses: list[PinUse] = []
     if I2C_BUS.search(source) and not I2C_PINS_GIVEN.search(source):
         for name in DEFAULT_I2C_PIN_NAMES:
@@ -217,19 +236,42 @@ def _pin_uses(code: str, pin_names: Mapping[str, int] | None) -> list[PinUse]:
     return uses
 
 
-def _find_constants(source: str) -> dict[str, set[int]]:
-    """Map each name given a pin-like value, by #define or declaration, to its values."""
-    constants: dict[str, set[int]] = {}
-    for match in (*DEFINED_CONSTANT.finditer(source), *DECLARED_CONSTANT.finditer(source)):
-        constants.setdefault(match.group("name"), set()).add(_pin_number(match.group("value")))
-    for match in DECLARED_ARRAY.finditer(source):
-        values = {
-            _pin_number(value.strip())
-            for value in match.group("values").split(",")
-            if re.fullmatch(PIN_VALUE, value.strip())
-        }
-        constants.setdefault(match.group("name"), set()).update(values)
-    return constants
+def _add_constants(source: str, constants: dict[str, set[int]]) -> None:
+    """Add each name the code gives a pin-like value, by #define, declaration or array.
+
+    Declarations are read in order, so a constant set to an earlier one, or to a board pin name
+    such as A0, gets its number. A name the code declares replaces the board's pin name.
+    """
+    declared: set[str] = set()
+    declarations = sorted(
+        (
+            *DEFINED_CONSTANT.finditer(source),
+            *DECLARED_CONSTANT.finditer(source),
+            *DECLARED_ARRAY.finditer(source),
+        ),
+        key=lambda match: match.start(),
+    )
+    for match in declarations:
+        tokens = (
+            match.group("values").split(",")
+            if match.re is DECLARED_ARRAY
+            else [match.group("value")]
+        )
+        values = set().union(*(_values_of(token.strip(), constants) for token in tokens))
+        name = match.group("name")
+        if not values:
+            continue
+        if name in declared:
+            constants[name] |= values
+        else:
+            constants[name] = values
+            declared.add(name)
+
+
+def _values_of(token: str, constants: Mapping[str, set[int]]) -> set[int]:
+    if re.fullmatch(PIN_VALUE, token):
+        return {_pin_number(token)}
+    return set(constants.get(token, set()))
 
 
 def _call_arguments(source: str, start: int) -> list[str]:
