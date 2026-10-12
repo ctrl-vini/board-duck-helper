@@ -6,6 +6,7 @@ import { fillBoardSelect } from "./components/boardSelect.js";
 import { renderBoardView } from "./components/boardView.js";
 import { createConfirmDialog } from "./components/confirmDialog.js";
 import { createDuck } from "./components/duck.js";
+import { renderHelp } from "./components/helpView.js";
 import {
   renderCommandLine,
   renderErrorLine,
@@ -17,6 +18,7 @@ import { renderPromptText } from "./components/promptText.js";
 import { UI_TEXT, errorMessageFor } from "./ui-text.js";
 import { readConversationId, writeConversationId } from "./utils/conversationUrl.js";
 import { fitToContent } from "./utils/fitToContent.js";
+import { playQuack } from "./utils/quackSound.js";
 import { bindShortcuts } from "./utils/shortcuts.js";
 
 const NOT_FOUND_STATUS = 404;
@@ -55,11 +57,20 @@ const state = {
 // Board profiles never change while the server runs, so each one is fetched once.
 const boardProfiles = new Map();
 
+// What each local command does; the names students can type for them are in UI_TEXT.commands.
+const LOCAL_COMMANDS = {
+  help: showHelp,
+  pinout: openBoardPane,
+  clear: askToClearConversation,
+  about: () => aboutDialog.open(),
+  quack,
+};
+
 async function init() {
   applyStaticTexts();
   bindShortcuts();
   elements.promptLabel.append(renderPromptText());
-  elements.boardPaneCommand.append(renderPromptText(), ` ${UI_TEXT.pinoutCommand}`);
+  elements.boardPaneCommand.append(renderPromptText(), ` ${UI_TEXT.commands.pinout[0]}`);
   elements.boardPane.setAttribute("aria-label", UI_TEXT.boardPaneLabel);
   renderMotd(elements.motd, useExample);
   duck.speak("listening", UI_TEXT.duck.listening);
@@ -164,18 +175,30 @@ async function handleSubmit(event) {
 
 /** Run a command the page answers by itself, without the model; returns whether one ran. */
 async function runLocalCommand(content) {
-  const command = content.toLowerCase();
-  if (command === UI_TEXT.pinoutCommand) {
-    setRequestText("");
-    await openBoardPane();
-    return true;
+  const typed = content.toLowerCase();
+  const command = Object.keys(LOCAL_COMMANDS).find((name) =>
+    UI_TEXT.commands[name].includes(typed),
+  );
+  if (!command) {
+    return false;
   }
-  if (UI_TEXT.clearCommands.includes(command)) {
-    setRequestText("");
-    await askToClearConversation();
-    return true;
-  }
-  return false;
+  setRequestText("");
+  await LOCAL_COMMANDS[command](content);
+  return true;
+}
+
+/** Print the commands and their shortcuts, like a terminal's help output. */
+function showHelp(typedCommand) {
+  clearErrors();
+  appendToTranscript(renderCommandLine(typedCommand));
+  appendToTranscript(renderHelp(), "start");
+  duck.speak("happy", UI_TEXT.duck.help);
+}
+
+function quack() {
+  playQuack();
+  const { quacks } = UI_TEXT.duck;
+  duck.speak("happy", quacks[Math.floor(Math.random() * quacks.length)]);
 }
 
 /**

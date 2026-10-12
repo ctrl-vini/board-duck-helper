@@ -401,27 +401,43 @@ body {
   color: var(--color-duck);
 }
 
-.wiring-table {
+/* Tables printed like command output: the wiring guide and the help. */
+
+.terminal-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.wiring-table th,
-.wiring-table td {
+.terminal-table th,
+.terminal-table td {
   padding: var(--space-1) var(--space-3) var(--space-1) 0;
   text-align: left;
   vertical-align: top;
 }
 
-.wiring-table th {
+.terminal-table th {
   border-bottom: 1px solid var(--color-rule);
   color: var(--color-muted);
   font-weight: 400;
+  white-space: nowrap;
 }
 
-.wiring-table__component {
+.terminal-table__key {
   color: var(--color-duck);
   white-space: nowrap;
+}
+
+/* Output of the help command. */
+
+.line--help {
+  display: grid;
+  gap: var(--space-2);
+  white-space: normal;
+}
+
+/* Only as wide as its content, so each shortcut stays next to its command. */
+.line--help .terminal-table {
+  width: auto;
 }
 
 /* The rubber duck the student explains the problem to. */

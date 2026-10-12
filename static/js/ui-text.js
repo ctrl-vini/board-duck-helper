@@ -9,9 +9,28 @@ export const UI_TEXT = {
   about: "sobre",
   close: "fechar",
   boardPaneLabel: "Placa e ligações",
-  pinoutCommand: "pinout",
-  // Clear-screen commands students may know: Unix shells, Windows cmd and PowerShell, MATLAB.
-  clearCommands: ["clear", "reset", "cls", "clear-host", "clc"],
+  // Commands the page answers by itself, without the model. The first name is the main one.
+  commands: {
+    help: ["help", "ajuda"],
+    pinout: ["pinout"],
+    // Clear-screen commands students may know: Unix shells, Windows cmd and PowerShell, MATLAB.
+    clear: ["clear", "cls", "reset", "clear-host", "clc"],
+    about: ["about", "sobre"],
+    quack: ["quack"],
+  },
+  help: {
+    title: "comandos que o pato entende:",
+    headers: ["comando", "o que faz", "atalho"],
+    entries: [
+      { command: "help", description: "mostra esta lista" },
+      { command: "pinout", description: "mostra a placa e como ligar cada componente", key: "p" },
+      { command: "clear", description: "limpa a conversa e começa do zero", key: "l" },
+      { command: "about", description: "mostra o sobre do Duckoder", key: "s" },
+      { command: "quack", description: "o pato faz quack" },
+    ],
+    aliases: (names) => ` (também: ${names.join(", ")})`,
+    keys: "enter envia o pedido; shift + enter quebra a linha",
+  },
   clearDialogTitle: "Limpar a conversa?",
   clearDialogMessage:
     "As mensagens e o código saem da tela, e o pato esquece o que foi pedido até aqui.",
@@ -60,8 +79,7 @@ export const UI_TEXT = {
     lines: [
       "Gera código para placas didáticas com um modelo de linguagem da rede local.",
       "Explique ao pato o que a placa deve fazer, como explicaria a um colega. O código volta pronto para colar na IDE, e você pode pedir ajustes na mesma conversa.",
-      "Digite pinout (ou use [ ver placa ]) para ver os pinos e como ligar cada componente.",
-      "Digite clear (ou use [ limpar conversa ]) para começar do zero.",
+      "Digite help para ver os comandos e os atalhos.",
     ],
     examplesTitle: "Experimente um destes:",
     examples: [
@@ -79,6 +97,8 @@ export const UI_TEXT = {
       `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
     board: "Abri a placa num painel. Os pinos em amarelo já têm componente ligado.",
+    help: "Esses são os comandos que eu entendo.",
+    quacks: ["Quack!", "Quack quack!", "QUACK!"],
   },
   conversationNotFound: "a conversa do link não existe mais; comece uma nova conversa",
   noBoards: "nenhuma placa cadastrada no servidor; adicione um perfil em data/boards e reinicie",

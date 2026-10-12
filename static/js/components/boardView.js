@@ -120,7 +120,7 @@ function noteFor(pin, usage) {
 }
 
 function renderWiringTable(components) {
-  const table = createElement("table", "wiring-table");
+  const table = createElement("table", "terminal-table");
   const headerRow = createElement("tr");
   for (const header of UI_TEXT.wiringHeaders) {
     headerRow.append(createElement("th", null, header));
@@ -133,7 +133,7 @@ function renderWiringTable(components) {
     const pins = component.pins.map((pin) => UI_TEXT.pinWithRole(pin.gpio, pin.role)).join(", ");
     const row = createElement("tr");
     row.append(
-      createElement("td", "wiring-table__component", component.name),
+      createElement("td", "terminal-table__key", component.name),
       createElement("td", null, pins),
       createElement("td", null, component.wiring ?? component.type),
     );

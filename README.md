@@ -54,29 +54,30 @@ interface students use. The interactive API documentation is available at `/docs
 
 The page looks like a terminal, with a rubber duck in the corner, as in rubber duck debugging:
 
-- Requests are typed at a shell prompt: Enter sends, Shift+Enter adds a line.
+- Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
   out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
   confused. Animations stop when the system asks for reduced motion.
-- `[ ver placa ]` (Ctrl + P, or Cmd + P on a Mac), or typing `pinout` at the prompt, opens the
-  board in a pane beside the conversation, like a split terminal: a diagram of the header pins
-  with the ones in use highlighted, and a table with each component, its pins and how to wire
-  it. The pins stay in view while the student reads the code; the duck shrinks to one line to
-  make room. On small screens the pane takes the whole screen until `[ fechar ]`. This command
-  runs in the page and is not sent to the model.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
-- `[ limpar conversa ]` (Ctrl + L or Cmd + L), or typing a usual clear-screen command (`clear`,
-  `reset`, `cls`, `clear-host` or `clc`), asks for confirmation, where Enter clears and Esc
-  cancels; the next request starts a new conversation, so the model no longer sees the earlier
-  messages.
-- Hovering over a button shows its shortcut. On this page the shortcuts replace the browser's
-  own (jumping to the address bar, printing and saving), which stay available from the
-  browser's menu.
-- `[ sobre ]` (Ctrl + S or Cmd + S), at the right end of the status bar, shows what Duckoder
-  is, the running version, the author and the credits.
+
+A few words typed at the prompt are commands that the page answers by itself, without the model.
+`help` lists them:
+
+| Command | Also | What it does | Shortcut |
+| --- | --- | --- | --- |
+| `help` | `ajuda` | Prints the commands and their shortcuts | — |
+| `pinout` | — | Opens the board in a pane beside the conversation, like a split terminal: the header pins with the ones in use highlighted, and how to wire each component. The duck shrinks to one line to make room; on small screens the pane takes the whole screen until `[ fechar ]` | Ctrl + P |
+| `clear` | `cls`, `reset`, `clear-host`, `clc` | Asks for confirmation (Enter clears, Esc cancels) and empties the screen; the next request starts a new conversation, so the model no longer sees the earlier messages | Ctrl + L |
+| `about` | `sobre` | Shows what Duckoder is, the running version and the credits | Ctrl + S |
+| `quack` | — | The duck quacks, with a sound made by the Web Audio API | — |
+
+The status bar buttons `[ ver placa ]`, `[ limpar conversa ]` and `[ sobre ]` do the same, and
+hovering over one shows its shortcut; on a Mac the shortcuts use Cmd instead of Ctrl. On this
+page they replace the browser's own (address bar, printing and saving), which stay available
+from the browser's menu.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
 from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
@@ -179,7 +180,8 @@ git push origin master --tags
 With Ollama and the server running, from another device on the same network:
 
 1. Open the address from the server log; the board list loads.
-2. Run `pinout`: the diagram and the wiring table open in a pane beside the conversation.
+2. Run `help`, then `pinout`: the commands print, and the board opens in a pane beside the
+   conversation.
 3. Send "Pisque o LED embutido a cada segundo"; the code appears as "versão 1".
 4. Ask for a change, such as "Tire os comentários do código"; "versão 2" applies it.
 5. Reload the page; the conversation comes back from the address.
