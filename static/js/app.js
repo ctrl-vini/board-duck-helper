@@ -16,6 +16,7 @@ import {
 import { renderMotd } from "./components/motd.js";
 import { renderPromptText } from "./components/promptText.js";
 import { UI_TEXT, errorMessageFor } from "./ui-text.js";
+import { createCommandHistory } from "./utils/commandHistory.js";
 import { readConversationId, writeConversationId } from "./utils/conversationUrl.js";
 import { fitToContent } from "./utils/fitToContent.js";
 import { playQuack } from "./utils/quackSound.js";
@@ -61,6 +62,9 @@ const state = {
   boardPaneReply: null,
 };
 
+// What was typed in this conversation, for the up and down arrows; clearing it starts over.
+const commandHistory = createCommandHistory();
+
 // Board profiles never change while the server runs, so each one is fetched once; so is the
 // pin usage of each reply, since its code never changes either.
 const boardProfiles = new Map();
@@ -86,6 +90,7 @@ async function init() {
 
   elements.promptForm.addEventListener("submit", handleSubmit);
   elements.requestInput.addEventListener("keydown", submitOnEnter);
+  elements.requestInput.addEventListener("keydown", browseHistory);
   elements.requestInput.addEventListener("input", () => fitToContent(elements.requestInput));
   elements.clearConversationButton.addEventListener("click", askToClearConversation);
   elements.showBoardButton.addEventListener("click", toggleBoardPane);
@@ -134,6 +139,9 @@ async function restoreConversation() {
     elements.boardSelect.value = conversation.board_id;
     for (const message of conversation.messages) {
       appendMessage(message);
+      if (message.role === "user") {
+        commandHistory.add(message.content);
+      }
     }
   } catch (error) {
     if (error.status === NOT_FOUND_STATUS) {
@@ -152,6 +160,7 @@ async function handleSubmit(event) {
     elements.requestInput.focus();
     return;
   }
+  commandHistory.add(content);
   if (await runLocalCommand(content)) {
     return;
   }
@@ -350,6 +359,7 @@ function startNewConversation() {
   state.codeVersion = 0;
   state.latestCode = null;
   state.latestCodeReply = null;
+  commandHistory.clear();
   writeConversationId(null);
   elements.lines.replaceChildren();
   updateMotd();
@@ -453,6 +463,34 @@ function setRequestText(text) {
 function useExample(example) {
   setRequestText(example);
   elements.requestInput.focus();
+}
+
+/**
+ * The up and down arrows bring back what was typed in this conversation, like a shell. In a
+ * request with several lines they first move between its lines, as in any text field.
+ */
+function browseHistory(event) {
+  const input = elements.requestInput;
+  const isArrow = event.key === "ArrowUp" || event.key === "ArrowDown";
+  const modified = event.shiftKey || event.altKey || event.ctrlKey || event.metaKey;
+  if (!isArrow || modified || event.isComposing || input.readOnly) {
+    return;
+  }
+  const goingBack = event.key === "ArrowUp";
+  const { value, selectionStart, selectionEnd } = input;
+  const onEdgeLine = goingBack
+    ? !value.slice(0, selectionStart).includes("\n")
+    : !value.slice(selectionEnd).includes("\n");
+  if (selectionStart !== selectionEnd || !onEdgeLine) {
+    return;
+  }
+  const text = goingBack ? commandHistory.previous(value) : commandHistory.next();
+  if (text === null) {
+    return;
+  }
+  event.preventDefault();
+  setRequestText(text);
+  input.setSelectionRange(text.length, text.length);
 }
 
 /** Enter sends, like a terminal; Shift+Enter adds a line break. */

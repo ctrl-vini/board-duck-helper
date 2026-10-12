@@ -38,7 +38,7 @@ export const UI_TEXT = {
       { command: "quack", description: "o pato faz quack" },
     ],
     aliases: (names) => ` (também: ${names.join(", ")})`,
-    keys: "enter envia o pedido; shift + enter quebra a linha",
+    keys: "enter envia o pedido; shift + enter quebra a linha; ↑ e ↓ trazem de volta o que você já digitou nesta conversa",
   },
   clearDialogTitle: "Limpar a conversa?",
   clearDialogMessage:
@@ -111,7 +111,7 @@ export const UI_TEXT = {
   },
   requestLabel: "O que a placa deve fazer?",
   send: "enviar",
-  sendHint: "enter envia, shift + enter quebra a linha",
+  sendHint: "enter envia, shift + enter quebra a linha, ↑ ↓ histórico",
   promptUser: "aluno@lab",
   promptPath: "~",
   duckSpeaker: "pato>",

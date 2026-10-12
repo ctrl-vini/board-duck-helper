@@ -60,8 +60,10 @@ interface students use. The interactive API documentation is available at `/docs
 
 The page looks like a terminal, with a rubber duck in the corner, as in rubber duck debugging:
 
-- Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line. While the model
-  works, the waiting line moves on every few seconds through the steps of writing a sketch.
+- Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line, and the up and
+  down arrows bring back what was typed in this conversation, as in a shell; clearing the
+  conversation empties that history. While the model works, the waiting line moves on every few
+  seconds through the steps of writing a sketch.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
 - `[ ver ligações ]`, on each version, opens the board with only what that code uses: its pins
