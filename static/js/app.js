@@ -3,6 +3,7 @@
 import * as api from "./services/api.js";
 import { fillBoardSelect } from "./components/boardSelect.js";
 import { renderBoardView } from "./components/boardView.js";
+import { createConfirmDialog } from "./components/confirmDialog.js";
 import { createDuck } from "./components/duck.js";
 import {
   renderCommandLine,
@@ -20,7 +21,7 @@ const NOT_FOUND_STATUS = 404;
 
 const elements = {
   boardSelect: document.getElementById("board-select"),
-  newConversationButton: document.getElementById("new-conversation"),
+  clearConversationButton: document.getElementById("clear-conversation"),
   showBoardButton: document.getElementById("show-board"),
   motd: document.getElementById("motd"),
   lines: document.getElementById("lines"),
@@ -31,6 +32,7 @@ const elements = {
 };
 
 const duck = createDuck(document.getElementById("duck"));
+const clearDialog = createConfirmDialog(document.getElementById("clear-dialog"));
 
 const state = {
   conversationId: null,
@@ -50,7 +52,7 @@ async function init() {
   elements.promptForm.addEventListener("submit", handleSubmit);
   elements.requestInput.addEventListener("keydown", submitOnEnter);
   elements.requestInput.addEventListener("input", () => fitToContent(elements.requestInput));
-  elements.newConversationButton.addEventListener("click", startNewConversation);
+  elements.clearConversationButton.addEventListener("click", askToClearConversation);
   elements.showBoardButton.addEventListener("click", showBoard);
   elements.boardSelect.addEventListener("change", startNewConversation);
 
@@ -112,9 +114,7 @@ async function handleSubmit(event) {
     elements.requestInput.focus();
     return;
   }
-  if (content.toLowerCase() === UI_TEXT.pinoutCommand) {
-    setRequestText("");
-    await showBoard();
+  if (await runLocalCommand(content)) {
     return;
   }
 
@@ -143,6 +143,22 @@ async function handleSubmit(event) {
     lockControls(false);
     elements.requestInput.focus();
   }
+}
+
+/** Run a command the page answers by itself, without the model; returns whether one ran. */
+async function runLocalCommand(content) {
+  const command = content.toLowerCase();
+  if (command === UI_TEXT.pinoutCommand) {
+    setRequestText("");
+    await showBoard();
+    return true;
+  }
+  if (UI_TEXT.clearCommands.includes(command)) {
+    setRequestText("");
+    await askToClearConversation();
+    return true;
+  }
+  return false;
 }
 
 /** Print the board drawing and wiring guide; it is local output, not part of the conversation. */
@@ -174,6 +190,12 @@ async function ensureConversation() {
     writeConversationId(conversation.id);
   }
   return state.conversationId;
+}
+
+async function askToClearConversation() {
+  if (await clearDialog.ask()) {
+    startNewConversation();
+  }
 }
 
 function startNewConversation() {
@@ -248,7 +270,7 @@ function lockControls(locked) {
   const controls = [
     elements.sendButton,
     elements.boardSelect,
-    elements.newConversationButton,
+    elements.clearConversationButton,
     elements.showBoardButton,
   ];
   for (const control of controls) {

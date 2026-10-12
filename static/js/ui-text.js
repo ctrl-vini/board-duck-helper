@@ -4,9 +4,17 @@ export const LOCALE = "pt-BR";
 
 export const UI_TEXT = {
   boardLabel: "placa:",
-  newConversation: "nova conversa",
+  clearConversation: "limpar conversa",
   showBoard: "ver placa",
   pinoutCommand: "pinout",
+  // Clear-screen commands students may know: Unix shells, Windows cmd and PowerShell, MATLAB.
+  clearCommands: ["clear", "reset", "cls", "clear-host", "clc"],
+  clearDialogTitle: "Limpar a conversa?",
+  clearDialogMessage:
+    "As mensagens e o código saem da tela, e o pato esquece o que foi pedido até aqui.",
+  clearDialogHint: "enter limpa, esc cancela",
+  cancel: "cancelar",
+  clear: "limpar",
   wiringHeaders: ["componente", "pinos", "como ligar"],
   pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
@@ -33,6 +41,7 @@ export const UI_TEXT = {
       "Gera código para placas didáticas com um modelo de linguagem da rede local.",
       "Explique ao pato o que a placa deve fazer, como explicaria a um colega. O código volta pronto para colar na IDE, e você pode pedir ajustes na mesma conversa.",
       "Digite pinout (ou use [ ver placa ]) para ver os pinos e como ligar cada componente.",
+      "Digite clear (ou use [ limpar conversa ]) para começar do zero.",
     ],
     examplesTitle: "Experimente um destes:",
     examples: [

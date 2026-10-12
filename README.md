@@ -65,6 +65,9 @@ debugging:
   wire it. This command runs in the page and is not sent to the model.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
+- `[ limpar conversa ]`, or typing a usual clear-screen command (`clear`, `reset`, `cls`,
+  `clear-host` or `clc`), asks for confirmation, where Enter clears and Esc cancels; the next
+  request starts a new conversation, so the model no longer sees the earlier messages.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
 from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
@@ -171,4 +174,5 @@ With Ollama and the server running, from another device on the same network:
 4. Ask for a change, such as "Tire os comentários do código"; "versão 2" applies it.
 5. Reload the page; the conversation comes back from the address.
 6. Copy the code; it pastes intact into the Arduino IDE.
-7. Stop Ollama and send a request; a readable error appears and the duck looks confused.
+7. Type `clear` and confirm; the screen empties and the next reply starts again at "versão 1".
+8. Stop Ollama and send a request; a readable error appears and the duck looks confused.

@@ -17,9 +17,9 @@
       </label>
       <button
         type="button"
-        id="new-conversation"
+        id="clear-conversation"
         class="terminal-button"
-        data-text="newConversation"
+        data-text="clearConversation"
       ></button>
       <button type="button" id="show-board" class="terminal-button" data-text="showBoard"></button>
     </header>
@@ -43,5 +43,22 @@
         <button type="submit" id="send" class="terminal-button terminal-button--accent" data-text="send"></button>
       </div>
     </form>
+
+    <dialog class="confirm-dialog" id="clear-dialog" aria-labelledby="clear-dialog-title">
+      <form method="dialog" class="confirm-dialog__form">
+        <p class="confirm-dialog__title" id="clear-dialog-title" data-text="clearDialogTitle"></p>
+        <p data-text="clearDialogMessage"></p>
+        <div class="confirm-dialog__actions">
+          <span class="confirm-dialog__hint" data-text="clearDialogHint"></span>
+          <button value="cancel" class="terminal-button" data-text="cancel"></button>
+          <button
+            value="confirm"
+            class="terminal-button terminal-button--accent"
+            data-text="clear"
+            autofocus
+          ></button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>

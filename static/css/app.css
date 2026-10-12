@@ -403,6 +403,49 @@ body {
   color: var(--color-muted);
 }
 
+/* Confirmation dialog, framed in the duck's yellow over a dimmed screen. */
+
+.confirm-dialog {
+  width: min(54ch, 100% - 2 * var(--space-4));
+  padding: var(--space-4);
+  border: 1px solid var(--color-duck);
+  background: var(--color-screen-raised);
+  color: var(--color-text);
+}
+
+.confirm-dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+
+.confirm-dialog__form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.confirm-dialog__form p {
+  margin: 0;
+}
+
+.confirm-dialog__title {
+  color: var(--color-duck);
+  font-weight: 700;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.confirm-dialog__hint {
+  margin-right: auto;
+  font-size: var(--text-small);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
 /* Narrow screens: the duck shrinks to one line above the prompt. */
 
 @media (max-width: 64rem) {
@@ -447,7 +490,8 @@ body {
   }
 
   .status-bar__session,
-  .prompt__hint {
+  .prompt__hint,
+  .confirm-dialog__hint {
     display: none;
   }
 
