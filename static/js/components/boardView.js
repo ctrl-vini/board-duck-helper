@@ -237,11 +237,14 @@ function renderEssentialPinsTable(pinout) {
     labels.join(", "),
     description,
   ]);
-  return renderTerminalTable(UI_TEXT.essentialPinsHeaders, rows);
+  return renderTerminalTable(UI_TEXT.essentialPinsHeaders, rows, "terminal-table--essential");
 }
 
-/** A table printed like command output; the first cell of each row is its key. */
-function renderTerminalTable(headers, rows) {
+/**
+ * A table printed like command output; the first cell of each row is its key. modifierClass
+ * restyles it, such as the essential pins in the color they have on the board.
+ */
+function renderTerminalTable(headers, rows, modifierClass = null) {
   const headerRow = createElement("tr");
   for (const header of headers) {
     headerRow.append(createElement("th", null, header));
@@ -260,6 +263,9 @@ function renderTerminalTable(headers, rows) {
   }
 
   const table = createElement("table", "terminal-table");
+  if (modifierClass) {
+    table.classList.add(modifierClass);
+  }
   table.append(head, body);
   return table;
 }

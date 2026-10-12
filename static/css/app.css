@@ -511,6 +511,11 @@ body {
   white-space: nowrap;
 }
 
+/* The essential pins keep in the table the blue they have on the board. */
+.terminal-table--essential .terminal-table__key {
+  color: var(--color-path);
+}
+
 /* Output of the help command. */
 
 .line--help {
