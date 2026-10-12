@@ -64,3 +64,11 @@ def test_pin_names_are_left_out_of_the_prompt(board_profile: BoardProfile) -> No
     system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
 
     assert "LED_BUILTIN" not in system_message.content
+
+
+def test_ide_board_is_left_out_of_the_prompt(board_profile: BoardProfile) -> None:
+    profile = board_profile.model_copy(update={"ide_board": "DOIT ESP32 DEVKIT V1"})
+
+    system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
+
+    assert "DOIT" not in system_message.content

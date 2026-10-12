@@ -28,6 +28,9 @@ export function renderBoardView(profile, wiring = null) {
   const view = createElement("div", "board-view");
   view.append(createElement("p", "board-view__title", profile.name));
   view.append(renderComment(profile.microcontroller));
+  if (profile.ide_board) {
+    view.append(renderComment(UI_TEXT.ideBoard(profile.ide_board)));
+  }
   if (wiring) {
     view.append(renderComment(UI_TEXT.wiringOfVersion(wiring.version)));
   }

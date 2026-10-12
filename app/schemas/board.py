@@ -60,6 +60,9 @@ class BoardProfile(ProfileModel):
     microcontroller: str = Field(min_length=1)
     language: str = Field(min_length=1)
     framework: str = Field(min_length=1)
+    # The board to pick in the Arduino IDE's menu, shown to students; the wrong one can leave
+    # names such as LED_BUILTIN undefined.
+    ide_board: str | None = None
     components: list[Component] = Field(min_length=1)
     notes: list[str] = Field(default_factory=list)
     pinout: Pinout | None = None

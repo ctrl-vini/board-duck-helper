@@ -147,6 +147,7 @@ message naming the file.
 | `id` | Lowercase letters, digits and hyphens; used in the API paths |
 | `name`, `microcontroller` | Shown to the student and sent to the model |
 | `language`, `framework` | What the generated code must target, such as C++ on Arduino |
+| `ide_board` | Optional board to pick in the Arduino IDE, shown in the board view; the wrong one can leave names such as `LED_BUILTIN` undefined |
 | `components` | What is wired to the board: `name`, `type`, `pins`, an optional `wiring` text and an optional `kind` for its drawing |
 | `notes` | Usage restrictions and libraries the model must respect |
 | `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists |
@@ -170,10 +171,10 @@ text. For example:
 }
 ```
 
-The profile is sent to the model as context without `pinout`, `pin_names`, the kinds and the
-`wiring` texts: those are for the student and for reading the code, and leaving them out keeps
-the prompt shorter. The `notes` do go to the model: they are where the profile tells it how to
-use the board's libraries and core, such as which calls exist for PWM. The texts the student
+The profile is sent to the model as context without `pinout`, `ide_board`, `pin_names`, the kinds
+and the `wiring` texts: those are for the student and for reading the code, and leaving them out
+keeps the prompt shorter. The `notes` do go to the model: they are where the profile tells it how
+to use the board's libraries and core, such as which calls exist for PWM. The texts the student
 reads are in Brazilian Portuguese.
 
 ## Development checks

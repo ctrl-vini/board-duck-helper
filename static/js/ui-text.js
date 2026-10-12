@@ -67,6 +67,7 @@ export const UI_TEXT = {
   pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
   noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
+  ideBoard: (name) => `na Arduino IDE, selecione a placa ${name}`,
   showWiring: "ver ligações",
   fullBoard: "placa completa",
   versionWiring: (version) => `ligações da versão ${version}`,

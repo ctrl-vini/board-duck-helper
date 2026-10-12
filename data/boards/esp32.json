@@ -4,6 +4,7 @@
   "microcontroller": "ESP32 (dual-core Xtensa LX6, 240 MHz, WiFi e Bluetooth)",
   "language": "C++",
   "framework": "Arduino (núcleo ESP32)",
+  "ide_board": "DOIT ESP32 DEVKIT V1",
   "components": [
     {
       "name": "LED embutido",

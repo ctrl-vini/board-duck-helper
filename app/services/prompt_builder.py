@@ -12,11 +12,12 @@ SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "syste
 # Stored with every reply so each generated code can be traced to the prompt that produced it.
 # Bump it whenever system_prompt.txt or the way the profile is serialized changes.
 PROMPT_VERSION = "v5"
-# The header layout, the component kinds and the wiring instructions are for the student's
-# board view, and the pin names for reading the generated code; the model only needs the
-# components and their pins, and a shorter prompt is faster to process.
+# The header layout, the IDE board, the component kinds and the wiring instructions are for the
+# student's board view, and the pin names for reading the generated code; the model only needs
+# the components and their pins, and a shorter prompt is faster to process.
 PROFILE_FIELDS_LEFT_OUT_OF_PROMPT = {
     "pinout": True,
+    "ide_board": True,
     "pin_names": True,
     "components": {"__all__": {"kind", "wiring"}},
 }
