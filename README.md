@@ -1,6 +1,6 @@
-<h1 align="center">
-  <img src="docs/banner.svg" alt="Duckoder" width="760">
-</h1>
+# Duckoder
+
+![Duckoder](docs/banner.svg)
 
 Web platform that generates code for teaching boards, starting with the ESP32, using a language
 model that runs locally through [Ollama](https://ollama.com). The student picks a board, explains
