@@ -18,7 +18,11 @@ export function bindShortcuts(root = document) {
     const shownKey = key.toUpperCase();
     buttonsByKey.set(key, button);
     button.setAttribute("aria-keyshortcuts", `Control+${shownKey} Meta+${shownKey}`);
-    button.append(renderHint(MODIFIER_LABEL, shownKey));
+    const hint = renderShortcut(key);
+    hint.classList.add("shortcut-hint");
+    // Assistive technologies get the shortcut from aria-keyshortcuts instead.
+    hint.setAttribute("aria-hidden", "true");
+    button.append(hint);
   }
 
   document.addEventListener("keydown", (event) => {
@@ -36,15 +40,16 @@ export function bindShortcuts(root = document) {
   });
 }
 
-/** The key combination as nested <kbd> elements, which is how HTML marks up keys pressed together. */
-function renderHint(modifier, key) {
-  const hint = createElement("kbd", "shortcut-hint");
-  // Assistive technologies get the shortcut from aria-keyshortcuts instead.
-  hint.setAttribute("aria-hidden", "true");
-  hint.append(
-    createElement("kbd", "shortcut-hint__key", modifier),
+/**
+ * A key combination such as "ctrl + L" drawn as keycaps, in nested <kbd> elements, which is how
+ * HTML marks up keys pressed together.
+ */
+export function renderShortcut(key) {
+  const shortcut = createElement("kbd", "shortcut");
+  shortcut.append(
+    createElement("kbd", "keycap", MODIFIER_LABEL),
     " + ",
-    createElement("kbd", "shortcut-hint__key", key),
+    createElement("kbd", "keycap", key.toUpperCase()),
   );
-  return hint;
+  return shortcut;
 }

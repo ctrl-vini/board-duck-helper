@@ -73,9 +73,10 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
   cancels; the next request starts a new conversation, so the model no longer sees the earlier
   messages.
 - Hovering over a button shows its shortcut. On this page the shortcuts replace the browser's
-  own (jumping to the address bar and printing), which stay available from the browser's menu.
-- `[ sobre ]`, at the right end of the status bar, shows what Duckoder is, the running version,
-  the author and the credits.
+  own (jumping to the address bar, printing and saving), which stay available from the
+  browser's menu.
+- `[ sobre ]` (Ctrl + S or Cmd + S), at the right end of the status bar, shows what Duckoder
+  is, the running version, the author and the credits.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
 from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font

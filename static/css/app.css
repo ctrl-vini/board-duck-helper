@@ -100,33 +100,44 @@ body {
   cursor: not-allowed;
 }
 
-/* A button's keyboard shortcut, shown below it on hover or keyboard focus. */
+/* A key combination drawn as rounded keycaps, in the button hints and in the help output. */
 
+.shortcut {
+  color: var(--color-muted);
+  font-family: inherit;
+  font-size: var(--text-small);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.keycap {
+  padding: 0 0.45em;
+  border: 1px solid var(--color-muted);
+  border-radius: 4px;
+  color: var(--color-text);
+  font: inherit;
+}
+
+/* A button's shortcut, shown below it on hover or keyboard focus. */
 .shortcut-hint {
   position: absolute;
   top: calc(100% + var(--space-1));
   left: 50%;
   z-index: 1;
   display: none;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-2);
   border: 1px solid var(--color-rule);
   border-radius: 6px;
   background: var(--color-screen);
-  color: var(--color-muted);
-  font-family: inherit;
-  font-size: var(--text-small);
-  font-weight: 400;
   line-height: 1.4;
   transform: translateX(-50%);
 }
 
-/* Each key drawn as a rounded keycap. */
-.shortcut-hint__key {
-  padding: 0 0.45em;
-  border: 1px solid var(--color-muted);
-  border-radius: 4px;
-  color: var(--color-text);
-  font: inherit;
+/* The about button sits at the window's edge, so its hint lines up with the button's right side. */
+.status-bar__about .shortcut-hint {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .terminal-button:focus-visible .shortcut-hint {
