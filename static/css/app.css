@@ -1,0 +1,420 @@
+/* Layout and components of the terminal-style interface. */
+
+body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  height: 100dvh;
+}
+
+/* Status bar, in the style of a tmux status line. */
+
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  min-height: 2.75rem;
+  padding-right: var(--space-3);
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-screen-raised);
+}
+
+.status-bar__session {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  background: var(--color-duck);
+  color: var(--color-duck-ink);
+  font-weight: 700;
+}
+
+.board-field {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-muted);
+}
+
+.board-field__select {
+  min-height: var(--control-height);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-rule);
+  border-radius: 0;
+  background: var(--color-screen);
+  color: var(--color-text);
+}
+
+/* Buttons drawn as bracketed terminal actions, inverted on hover like a selected menu item. */
+
+.terminal-button {
+  min-height: var(--control-height);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.terminal-button::before {
+  content: "[ ";
+  color: var(--color-muted);
+}
+
+.terminal-button::after {
+  content: " ]";
+  color: var(--color-muted);
+}
+
+.terminal-button:hover:not(:disabled) {
+  background: var(--color-text);
+  color: var(--color-screen);
+}
+
+.terminal-button--accent {
+  color: var(--color-duck);
+}
+
+.terminal-button--accent:hover:not(:disabled) {
+  background: var(--color-duck);
+  color: var(--color-duck-ink);
+}
+
+.terminal-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Workspace: the scrolling transcript, with the duck in the bottom-right corner. */
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.transcript {
+  /* Positioned so that absolutely positioned descendants (screen reader labels) scroll
+     with the transcript instead of stretching the page. */
+  position: relative;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+}
+
+.motd,
+.lines {
+  max-width: var(--transcript-width);
+}
+
+/* Message of the day: shown until the first request. */
+
+.motd {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.motd p {
+  margin: 0;
+}
+
+.motd__title {
+  color: var(--color-duck);
+  font-weight: 700;
+}
+
+.motd__muted {
+  color: var(--color-muted);
+}
+
+.motd__examples {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.example-button {
+  padding: 0 var(--space-1);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.example-button__index {
+  color: var(--color-duck);
+}
+
+.example-button:hover {
+  background: var(--color-text);
+  color: var(--color-screen);
+}
+
+/* Transcript lines. */
+
+.lines {
+  display: grid;
+  /* minmax(0, 1fr) keeps long code lines from widening the column; the code scrolls instead. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.line--reply {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  white-space: normal;
+}
+
+.line__text {
+  margin: 0;
+}
+
+.prompt-text__user {
+  color: var(--color-user);
+}
+
+.prompt-text__path {
+  color: var(--color-path);
+}
+
+.speaker {
+  color: var(--color-duck);
+  font-weight: 700;
+}
+
+.line__meta {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.line--pending {
+  color: var(--color-muted);
+}
+
+.line--error {
+  color: var(--color-error);
+}
+
+.line__error-label {
+  font-weight: 700;
+}
+
+.thinking-dots::after {
+  content: "...";
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  vertical-align: bottom;
+  animation: thinking-dots 1.2s steps(4) infinite;
+}
+
+@keyframes thinking-dots {
+  to {
+    width: 4ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dots::after {
+    width: auto;
+  }
+}
+
+/* Generated code, framed like a file opened in the terminal. */
+
+.code-block {
+  margin: 0;
+  border: 1px solid var(--color-rule);
+  background: var(--color-screen-raised);
+}
+
+.code-block__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding-left: var(--space-3);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-small);
+  color: var(--color-muted);
+}
+
+.code-block__body {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+/* The rubber duck the student explains the problem to. */
+
+.duck {
+  align-self: end;
+  width: 30ch;
+  padding: var(--space-4);
+  color: var(--color-duck);
+}
+
+.duck__speech {
+  position: relative;
+  margin: 0 0 var(--space-6);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-duck);
+  color: var(--color-text);
+  font-size: var(--text-small);
+}
+
+.duck__speech::after {
+  content: "/";
+  position: absolute;
+  left: 6ch;
+  bottom: -1.5em;
+  color: var(--color-duck);
+}
+
+.duck__art,
+.duck__mini {
+  margin: 0;
+  font: inherit;
+  line-height: 1.2;
+  white-space: pre;
+}
+
+.duck__art .duck__water {
+  color: var(--color-water);
+}
+
+.duck__mini {
+  display: none;
+}
+
+/* Prompt line where the student types. */
+
+.prompt {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-rule);
+}
+
+.prompt:focus-within {
+  border-top-color: var(--color-duck);
+}
+
+.prompt__line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1ch;
+  align-items: start;
+}
+
+.prompt__label {
+  white-space: nowrap;
+}
+
+.prompt__input {
+  min-height: calc(var(--line-height) * 1em);
+  max-height: 40vh;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: var(--line-height);
+  caret-color: var(--color-duck);
+  resize: none;
+}
+
+/* The prompt line shows focus through the highlighted border above it. */
+.prompt__input:focus-visible {
+  outline: none;
+}
+
+.prompt__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.prompt__hint {
+  margin-right: auto;
+  font-size: var(--text-small);
+  color: var(--color-muted);
+}
+
+/* Narrow screens: the duck shrinks to one line above the prompt. */
+
+@media (max-width: 64rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .duck {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    width: auto;
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px dashed var(--color-rule);
+  }
+
+  .duck__art {
+    display: none;
+  }
+
+  .duck__mini {
+    display: block;
+    order: -1;
+  }
+
+  .duck__speech {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .duck__speech::after {
+    content: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --text-base: 0.875rem;
+  }
+
+  .status-bar__session,
+  .prompt__hint {
+    display: none;
+  }
+
+  .status-bar {
+    padding-left: var(--space-3);
+  }
+
+  .board-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .board-field__select {
+    flex: 1;
+    min-width: 0;
+  }
+}

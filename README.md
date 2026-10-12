@@ -44,8 +44,17 @@ unparsed reply. The system prompt lives in `app/prompts/system_prompt.txt`; bump
 python server.py
 ```
 
-The log shows the address to open from any device on the local network. The interactive API
-documentation is available at `/docs`.
+The log shows the address to open from any device on the local network: that page is the
+interface students use. Picking a board and sending a request starts a conversation; its id goes
+into the page address (`/?conversation=<id>`), so reloading or sharing the link reopens it. The
+interactive API documentation is available at `/docs`.
+
+The interface looks like a terminal: requests are typed at a shell prompt (Enter sends,
+Shift+Enter adds a line), each reply prints the code as "versão N" with a copy action, and an
+ASCII rubber duck in the corner reacts to what is happening, as in rubber duck debugging. It is
+plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded from the
+internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font License,
+with ligatures turned off so operators such as `<=` show the exact characters to type.
 
 ## Configuration
 

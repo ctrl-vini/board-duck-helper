@@ -4,9 +4,43 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Board Code Assistant</title>
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <script type="module" src="/js/app.js"></script>
   </head>
   <body>
-    <h1>Board Code Assistant</h1>
-    <p>Servidor em execução.</p>
+    <header class="status-bar">
+      <span class="status-bar__session">board-code-assistant</span>
+      <label class="board-field">
+        <span data-text="boardLabel"></span>
+        <select id="board-select" class="board-field__select"></select>
+      </label>
+      <button
+        type="button"
+        id="new-conversation"
+        class="terminal-button"
+        data-text="newConversation"
+      ></button>
+    </header>
+
+    <main class="workspace">
+      <div class="transcript" id="transcript">
+        <section class="motd" id="motd"></section>
+        <ol class="lines" id="lines" aria-live="polite"></ol>
+      </div>
+      <aside class="duck" id="duck" data-mood="listening"></aside>
+    </main>
+
+    <form class="prompt" id="prompt-form">
+      <div class="prompt__line">
+        <span class="prompt__label" id="prompt-label" aria-hidden="true"></span>
+        <label class="visually-hidden" for="request" data-text="requestLabel"></label>
+        <textarea id="request" class="prompt__input" rows="1" maxlength="4000"></textarea>
+      </div>
+      <div class="prompt__actions">
+        <span class="prompt__hint" data-text="sendHint"></span>
+        <button type="submit" id="send" class="terminal-button terminal-button--accent" data-text="send"></button>
+      </div>
+    </form>
   </body>
 </html>
