@@ -78,7 +78,11 @@ export function renderErrorLine(text) {
 
 function renderDuckSays(text) {
   const paragraph = createElement("p", "line__text");
-  paragraph.append(createElement("span", "speaker", UI_TEXT.duckSpeaker), ` ${text}`);
+  paragraph.append(
+    createElement("span", "speaker", UI_TEXT.duckSpeaker),
+    " ",
+    createElement("span", "line__explanation", text),
+  );
   return paragraph;
 }
 

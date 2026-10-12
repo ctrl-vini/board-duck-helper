@@ -21,6 +21,7 @@ import { fitToContent } from "./utils/fitToContent.js";
 import { playQuack } from "./utils/quackSound.js";
 import { pickAtRandom } from "./utils/random.js";
 import { bindShortcuts } from "./utils/shortcuts.js";
+import { typeOut } from "./utils/typewriter.js";
 
 const NOT_FOUND_STATUS = 404;
 
@@ -166,7 +167,7 @@ async function handleSubmit(event) {
     const conversationId = await ensureConversation();
     const reply = await api.sendMessage(conversationId, content);
     pending.remove();
-    const codeVersion = appendMessage(reply, "start");
+    const codeVersion = appendMessage(reply, "start", { typed: true });
     reactToReply(reply, codeVersion);
     if (reply.code) {
       // An open board pane moves on to the new version, so it never shows outdated pins.
@@ -357,8 +358,11 @@ function startNewConversation() {
   elements.requestInput.focus();
 }
 
-/** Show a message; for replies, returns how its code was numbered. */
-function appendMessage(message, scrollAlignment = "nearest") {
+/**
+ * Show a message; for replies, returns how its code was numbered. With typed, the explanation of
+ * a new reply is typed out while the duck talks; a restored history appears at once.
+ */
+function appendMessage(message, scrollAlignment = "nearest", { typed = false } = {}) {
   if (message.role === "user") {
     appendToTranscript(renderCommandLine(message.content), scrollAlignment);
     return null;
@@ -366,7 +370,11 @@ function appendMessage(message, scrollAlignment = "nearest") {
   const codeVersion = trackCodeVersion(message);
   const reply = { messageId: message.id, version: codeVersion.version };
   const showWiring = () => showBoard(reply);
-  appendToTranscript(renderReply(message, codeVersion, showWiring), scrollAlignment);
+  const line = appendToTranscript(renderReply(message, codeVersion, showWiring), scrollAlignment);
+  const explanation = line.querySelector(".line__explanation");
+  if (typed && explanation) {
+    duck.keepTalking(typeOut(explanation));
+  }
   return codeVersion;
 }
 

@@ -69,9 +69,9 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
   in orange when it moved a component to another pin, and a warning in red for any pin it uses
   that has no component wired to it, usually a pin the model made up.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
-  out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
-  confused. Its messages vary from one request to the next. Animations stop when the system asks
-  for reduced motion.
+  out and while the explanation of a new reply is typed into the conversation, blinks from time
+  to time, and its eye shows whether it is listening, thinking, happy or confused. Its messages
+  vary from one request to the next. Animations stop when the system asks for reduced motion.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
 
