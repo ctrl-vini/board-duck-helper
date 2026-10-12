@@ -5,13 +5,19 @@ from collections.abc import Awaitable, Callable
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from app.exceptions import BoardNotFoundError, ConversationNotFoundError, LlmUnavailableError
+from app.exceptions import (
+    BoardNotFoundError,
+    ConversationNotFoundError,
+    LlmUnavailableError,
+    MessageNotFoundError,
+)
 
 ExceptionHandler = Callable[[Request, Exception], Awaitable[JSONResponse]]
 
 STATUS_BY_EXCEPTION: dict[type[Exception], int] = {
     BoardNotFoundError: status.HTTP_404_NOT_FOUND,
     ConversationNotFoundError: status.HTTP_404_NOT_FOUND,
+    MessageNotFoundError: status.HTTP_404_NOT_FOUND,
     LlmUnavailableError: status.HTTP_502_BAD_GATEWAY,
 }
 

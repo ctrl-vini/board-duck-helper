@@ -76,3 +76,29 @@ def test_model_failure_returns_502(client: TestClient, llm_client: FakeLlmClient
 
     assert response.status_code == 502
     assert response.json() == {"detail": "Failed to connect to Ollama"}
+
+
+def test_pin_usage_returns_the_components_to_wire(
+    client: TestClient, llm_client: FakeLlmClient
+) -> None:
+    conversation_id = start_conversation(client)
+    llm_client.reply = "```cpp\nvoid setup() { pinMode(2, OUTPUT); pinMode(13, OUTPUT); }\n```"
+    reply = client.post(
+        f"/conversations/{conversation_id}/messages", json={"content": "Pisque o LED"}
+    ).json()
+
+    response = client.get(f"/conversations/{conversation_id}/messages/{reply['id']}/pin-usage")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [component["name"] for component in body["components"]] == ["LED"]
+    assert body["unlisted_gpios"] == [13]
+
+
+def test_pin_usage_of_unknown_message_returns_404(client: TestClient) -> None:
+    conversation_id = start_conversation(client)
+
+    response = client.get(f"/conversations/{conversation_id}/messages/{'0' * 32}/pin-usage")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": f"Message not found: {'0' * 32}"}

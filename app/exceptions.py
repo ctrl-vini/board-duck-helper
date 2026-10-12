@@ -29,3 +29,11 @@ class ConversationNotFoundError(Exception):
     def __init__(self, conversation_id: str) -> None:
         super().__init__(f"Conversation not found: {conversation_id}")
         self.conversation_id = conversation_id
+
+
+class MessageNotFoundError(Exception):
+    """Raised when a conversation has no message with the requested id."""
+
+    def __init__(self, message_id: str) -> None:
+        super().__init__(f"Message not found: {message_id}")
+        self.message_id = message_id

@@ -1,12 +1,15 @@
-"""Conversation use cases: start a conversation, send a message, read the history."""
+"""Conversation use cases: start a conversation, send a message, read the history and pins."""
 
 import logging
 from collections.abc import Sequence
 
 from app.clients.llm_client import ChatMessage, LlmClient, LlmResult
+from app.exceptions import MessageNotFoundError
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import Conversation, GenerationMetrics, Message
+from app.schemas.pin_usage import PinUsage
 from app.services.board_registry import BoardRegistry
+from app.services.pin_detector import detect_pin_usage
 from app.services.prompt_builder import PROMPT_VERSION, PromptBuilder
 from app.services.response_parser import parse_response
 
@@ -55,6 +58,19 @@ class ConversationService:
         user_message = Message(role="user", content=content)
         self._conversations.save(conversation.with_messages(user_message, reply))
         return reply
+
+    def get_pin_usage(self, conversation_id: str, message_id: str) -> PinUsage:
+        """Return which of the board's components the code of one message uses."""
+        conversation = self._conversations.get(conversation_id)
+        message = _find_message(conversation, message_id)
+        return detect_pin_usage(message.code, self._boards.get_board(conversation.board_id))
+
+
+def _find_message(conversation: Conversation, message_id: str) -> Message:
+    for message in conversation.messages:
+        if message.id == message_id:
+            return message
+    raise MessageNotFoundError(message_id)
 
 
 def _to_chat_history(messages: Sequence[Message]) -> list[ChatMessage]:

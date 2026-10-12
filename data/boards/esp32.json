@@ -69,6 +69,7 @@
       "wiring": "IN no GPIO 23, VCC no VIN (5 V) e GND no GND."
     }
   ],
+  "pin_names": { "LED_BUILTIN": 2, "SDA": 21, "SCL": 22 },
   "notes": [
     "Os GPIO 34 a 39 são somente entrada e não têm pull-up nem pull-down internos.",
     "Os pinos do ADC2 não leem valores analógicos com o WiFi ligado; entradas analógicas usam pinos do ADC1 (GPIO 32 a 39).",

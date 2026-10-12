@@ -59,6 +59,9 @@ class BoardProfile(ProfileModel):
     components: list[Component] = Field(min_length=1)
     notes: list[str] = Field(default_factory=list)
     pinout: Pinout | None = None
+    # Names the board's Arduino core predefines for some pins, such as LED_BUILTIN, SDA and SCL,
+    # so the pins of generated code that uses them can be found.
+    pin_names: dict[str, int] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def check_component_pins_exist(self) -> Self:

@@ -41,10 +41,11 @@ To try a request through the platform's own prompt, board profile and model sett
 python -m scripts.ask_model "Pisque o LED embutido a cada segundo" --board esp32
 ```
 
-It prints the extracted code, the explanation and the timing; add `--raw` to also see the
-unparsed reply. The system prompt lives in `app/prompts/system_prompt.txt`; bump
-`PROMPT_VERSION` in `app/services/prompt_builder.py` whenever it changes, so each saved reply
-records the prompt that produced it.
+It prints the extracted code, the explanation, the board components the code uses (with any
+GPIO it uses that has no component) and the timing; add `--raw` to also see the unparsed reply.
+The system prompt lives in `app/prompts/system_prompt.txt`; bump `PROMPT_VERSION` in
+`app/services/prompt_builder.py` whenever it changes, so each saved reply records the prompt
+that produced it.
 
 ## Running
 
@@ -115,11 +116,20 @@ Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
 | POST | `/conversations` | `{"board_id"}` | `201` the new, empty conversation |
 | POST | `/conversations/{id}/messages` | `{"content"}` | `201` the model's reply, with `code`, `explanation` and `metrics` |
 | GET | `/conversations/{id}` | — | `200` the conversation with every message |
+| GET | `/conversations/{id}/messages/{message_id}/pin-usage` | — | `200` the board `components` the message's code uses, and the `unlisted_gpios` it uses with no component |
 | GET | `/version` | — | `200` the application's `name` and `version` |
 
-Errors use `{"detail": "..."}`: `404` for an unknown board or conversation, `422` for an invalid
-body, `502` when Ollama cannot answer. If the model fails, nothing is saved, so the student can
-simply send the message again. Try every route from `/docs`.
+Errors use `{"detail": "..."}`: `404` for an unknown board, conversation or message, `422` for an
+invalid body, `502` when Ollama cannot answer. If the model fails, nothing is saved, so the
+student can simply send the message again. Try every route from `/docs`.
+
+The pins come from reading the generated code, in `app/services/pin_detector.py`: the pin
+arguments of calls such as `pinMode`, `digitalWrite`, `analogRead`, `ledcAttach`, `tone` and
+`Wire.begin`, and of library objects such as `DHT`, with named constants, `#define`s and arrays
+resolved. The prompt asks the model to declare each pin as a named constant, which keeps this
+reliable; the board's own pin names and the default I2C pins come from its profile. Pins
+computed while the code runs are not found. The usage is computed on every request, so it always
+matches the current profile.
 
 ## Adding a board
 
@@ -135,6 +145,7 @@ message naming the file.
 | `components` | What is wired to the board: `name`, `type`, `pins` and an optional `wiring` text |
 | `notes` | Usage restrictions and libraries the model must respect |
 | `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists |
+| `pin_names` | Optional names the board's Arduino core gives to some pins, such as `LED_BUILTIN`, `SDA` and `SCL`, used to find the pins in generated code |
 
 Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`. Each header
 pin has a `label` and, when it is a GPIO, its `gpio` number; a profile whose components use a
@@ -149,9 +160,9 @@ GPIO missing from its pinout is rejected. For example:
 }
 ```
 
-The profile is sent to the model as context without `pinout` and the `wiring` texts: those are
-for the student, and leaving them out keeps the prompt shorter. The texts the student reads are
-in Brazilian Portuguese.
+The profile is sent to the model as context without `pinout`, `pin_names` and the `wiring`
+texts: those are for the student and for reading the code, and leaving them out keeps the prompt
+shorter. The texts the student reads are in Brazilian Portuguese.
 
 ## Development checks
 

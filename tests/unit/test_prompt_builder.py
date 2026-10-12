@@ -53,3 +53,11 @@ def test_wiring_guide_is_left_out_of_the_prompt(board_profile: BoardProfile) -> 
     assert "pinout" not in system_message.content
     assert "wiring" not in system_message.content
     assert '"gpio":2' in system_message.content
+
+
+def test_pin_names_are_left_out_of_the_prompt(board_profile: BoardProfile) -> None:
+    profile = board_profile.model_copy(update={"pin_names": {"LED_BUILTIN": 2}})
+
+    system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
+
+    assert "LED_BUILTIN" not in system_message.content

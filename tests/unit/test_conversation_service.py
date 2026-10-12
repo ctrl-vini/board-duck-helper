@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from app.exceptions import BoardNotFoundError, LlmUnavailableError
+from app.exceptions import BoardNotFoundError, LlmUnavailableError, MessageNotFoundError
 from app.repositories.conversation_repository import ConversationRepository
 from app.services.board_registry import BoardRegistry
 from app.services.conversation_service import ConversationService
@@ -76,3 +76,25 @@ def test_nothing_is_stored_when_the_model_fails(
         service.send_message(conversation.id, "Pisque o LED")
 
     assert service.get(conversation.id).messages == []
+
+
+def test_pin_usage_lists_the_components_the_reply_code_uses(
+    service: ConversationService, llm_client: FakeLlmClient
+) -> None:
+    conversation = service.start("test-board")
+    llm_client.reply = (
+        "```cpp\nconst int LED_PIN = 2;\nvoid setup() { pinMode(LED_PIN, OUTPUT); }\n```"
+    )
+    reply = service.send_message(conversation.id, "Pisque o LED")
+
+    usage = service.get_pin_usage(conversation.id, reply.id)
+
+    assert [component.name for component in usage.components] == ["LED"]
+    assert usage.unlisted_gpios == []
+
+
+def test_pin_usage_rejects_unknown_messages(service: ConversationService) -> None:
+    conversation = service.start("test-board")
+
+    with pytest.raises(MessageNotFoundError):
+        service.get_pin_usage(conversation.id, "0" * 32)
