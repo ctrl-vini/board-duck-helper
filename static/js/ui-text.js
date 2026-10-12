@@ -47,8 +47,8 @@ export const UI_TEXT = {
       { label: "autor", value: "ctrl-vini", href: "https://github.com/ctrl-vini" },
       {
         label: "código",
-        value: "github.com/ctrl-vini/board-duck-helper",
-        href: "https://github.com/ctrl-vini/board-duck-helper",
+        value: "github.com/ctrl-vini/duckoder",
+        href: "https://github.com/ctrl-vini/duckoder",
       },
       { label: "fonte", value: "JetBrains Mono, sob a SIL Open Font License 1.1" },
     ],
