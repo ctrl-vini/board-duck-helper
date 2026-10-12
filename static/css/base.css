@@ -72,6 +72,11 @@ textarea {
   color: inherit;
 }
 
+/* Without this, any component that sets its own display would ignore the hidden attribute. */
+[hidden] {
+  display: none !important;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-duck);
   outline-offset: 2px;
