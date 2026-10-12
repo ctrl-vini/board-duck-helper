@@ -28,6 +28,12 @@ ollama run qwen2.5-coder:7b --verbose "Write an Arduino sketch for the ESP32 tha
 
 `--verbose` prints the load time and the generation speed after the answer.
 
+To send a prompt through the platform's own client, with the configured model and options:
+
+```bash
+python -m scripts.ask_model "Write an Arduino sketch for the ESP32 that blinks the built-in LED on GPIO 2."
+```
+
 ## Running
 
 ```bash
@@ -47,6 +53,9 @@ All settings are environment variables with defaults, so nothing needs to be set
 | `APP_PORT` | `8000` | Server port |
 | `APP_OLLAMA_URL` | `http://localhost:11434` | Address of the Ollama service |
 | `APP_OLLAMA_MODEL` | `qwen2.5-coder:7b` | Model used to generate code |
+| `APP_LLM_TEMPERATURE` | `0.7` | Sampling temperature; higher values vary more between runs |
+| `APP_LLM_CONTEXT_SIZE` | `8192` | Context window in tokens; Ollama silently drops what exceeds it |
+| `APP_LLM_KEEP_ALIVE` | `30m` | How long Ollama keeps the model loaded after the last request |
 | `APP_BOARDS_DIR` | `data/boards` | Folder with the board profiles |
 
 Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.

@@ -17,3 +17,7 @@ class InvalidBoardProfileError(Exception):
     def __init__(self, path: Path, reason: str) -> None:
         super().__init__(f"Invalid board profile {path.name}: {reason}")
         self.path = path
+
+
+class LlmUnavailableError(Exception):
+    """Raised when the language model cannot produce a reply (service down, model missing...)."""

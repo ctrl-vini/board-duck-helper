@@ -17,6 +17,9 @@ class Settings:
     port: int
     ollama_url: str
     ollama_model: str
+    llm_temperature: float
+    llm_context_size: int
+    llm_keep_alive: str
     boards_dir: Path
     static_dir: Path
 
@@ -28,6 +31,9 @@ def load_settings() -> Settings:
         port=int(os.getenv("APP_PORT", "8000")),
         ollama_url=os.getenv("APP_OLLAMA_URL", "http://localhost:11434"),
         ollama_model=os.getenv("APP_OLLAMA_MODEL", "qwen2.5-coder:7b"),
+        llm_temperature=float(os.getenv("APP_LLM_TEMPERATURE", "0.7")),
+        llm_context_size=int(os.getenv("APP_LLM_CONTEXT_SIZE", "8192")),
+        llm_keep_alive=os.getenv("APP_LLM_KEEP_ALIVE", "30m"),
         boards_dir=Path(os.getenv("APP_BOARDS_DIR", str(DEFAULT_BOARDS_DIR))),
         static_dir=STATIC_DIR,
     )
