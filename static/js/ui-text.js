@@ -5,6 +5,12 @@ export const LOCALE = "pt-BR";
 export const UI_TEXT = {
   boardLabel: "placa:",
   newConversation: "nova conversa",
+  showBoard: "ver placa",
+  pinoutCommand: "pinout",
+  wiringHeaders: ["componente", "pinos", "como ligar"],
+  pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
+  usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
+  noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
   requestLabel: "O que a placa deve fazer?",
   send: "enviar",
   sendHint: "enter envia, shift+enter quebra a linha",
@@ -22,10 +28,11 @@ export const UI_TEXT = {
   noCode: "esta resposta veio sem código",
   sameCodeAs: (version) => `o código é igual ao da versão ${version}`,
   motd: {
-    title: "Board Code Assistant 0.1.0",
+    title: "Duckoder",
     lines: [
       "Gera código para placas didáticas com um modelo de linguagem da rede local.",
       "Explique ao pato o que a placa deve fazer, como explicaria a um colega. O código volta pronto para colar na IDE, e você pode pedir ajustes na mesma conversa.",
+      "Digite pinout (ou use [ ver placa ]) para ver os pinos e como ligar cada componente.",
     ],
     examplesTitle: "Experimente um destes:",
     examples: [
@@ -42,6 +49,7 @@ export const UI_TEXT = {
     unchanged: (version) =>
       `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
+    board: "Essa é a placa. Os pinos em amarelo já têm componente ligado.",
   },
   conversationNotFound: "a conversa do link não existe mais; comece uma nova conversa",
   noBoards: "nenhuma placa cadastrada no servidor; adicione um perfil em data/boards e reinicie",

@@ -2,7 +2,8 @@
 
 import * as api from "./services/api.js";
 import { fillBoardSelect } from "./components/boardSelect.js";
-import { renderDuck, setDuckMood } from "./components/duck.js";
+import { renderBoardView } from "./components/boardView.js";
+import { createDuck } from "./components/duck.js";
 import {
   renderCommandLine,
   renderErrorLine,
@@ -20,14 +21,16 @@ const NOT_FOUND_STATUS = 404;
 const elements = {
   boardSelect: document.getElementById("board-select"),
   newConversationButton: document.getElementById("new-conversation"),
+  showBoardButton: document.getElementById("show-board"),
   motd: document.getElementById("motd"),
   lines: document.getElementById("lines"),
-  duck: document.getElementById("duck"),
   promptForm: document.getElementById("prompt-form"),
   promptLabel: document.getElementById("prompt-label"),
   requestInput: document.getElementById("request"),
   sendButton: document.getElementById("send"),
 };
+
+const duck = createDuck(document.getElementById("duck"));
 
 const state = {
   conversationId: null,
@@ -35,17 +38,20 @@ const state = {
   latestCode: null,
 };
 
+// Board profiles never change while the server runs, so each one is fetched once.
+const boardProfiles = new Map();
+
 async function init() {
   applyStaticTexts();
   elements.promptLabel.append(renderPromptText());
   renderMotd(elements.motd, useExample);
-  renderDuck(elements.duck);
-  setDuckMood(elements.duck, "listening", UI_TEXT.duck.listening);
+  duck.speak("listening", UI_TEXT.duck.listening);
 
   elements.promptForm.addEventListener("submit", handleSubmit);
   elements.requestInput.addEventListener("keydown", submitOnEnter);
   elements.requestInput.addEventListener("input", () => fitToContent(elements.requestInput));
   elements.newConversationButton.addEventListener("click", startNewConversation);
+  elements.showBoardButton.addEventListener("click", showBoard);
   elements.boardSelect.addEventListener("change", startNewConversation);
 
   if (await loadBoards()) {
@@ -72,7 +78,7 @@ async function loadBoards() {
   } catch (error) {
     showError(errorMessageFor(error));
   }
-  setDuckMood(elements.duck, "confused", UI_TEXT.duck.confused);
+  duck.speak("confused", UI_TEXT.duck.confused);
   elements.sendButton.disabled = true;
   return false;
 }
@@ -106,10 +112,15 @@ async function handleSubmit(event) {
     elements.requestInput.focus();
     return;
   }
+  if (content.toLowerCase() === UI_TEXT.pinoutCommand) {
+    setRequestText("");
+    await showBoard();
+    return;
+  }
 
   clearErrors();
   lockControls(true);
-  setDuckMood(elements.duck, "thinking", UI_TEXT.duck.thinking);
+  duck.speak("thinking", UI_TEXT.duck.thinking);
   const command = appendToTranscript(renderCommandLine(content));
   const pending = appendToTranscript(renderPendingReply());
   setRequestText("");
@@ -127,11 +138,33 @@ async function handleSubmit(event) {
     command.remove();
     setRequestText(content);
     showError(errorMessageFor(error));
-    setDuckMood(elements.duck, "confused", UI_TEXT.duck.confused);
+    duck.speak("confused", UI_TEXT.duck.confused);
   } finally {
     lockControls(false);
     elements.requestInput.focus();
   }
+}
+
+/** Print the board drawing and wiring guide; it is local output, not part of the conversation. */
+async function showBoard() {
+  clearErrors();
+  appendToTranscript(renderCommandLine(UI_TEXT.pinoutCommand));
+  try {
+    const profile = await loadBoardProfile(elements.boardSelect.value);
+    appendToTranscript(renderBoardView(profile), "start");
+    duck.speak("happy", UI_TEXT.duck.board);
+  } catch (error) {
+    showError(errorMessageFor(error));
+    duck.speak("confused", UI_TEXT.duck.confused);
+  }
+  elements.requestInput.focus();
+}
+
+async function loadBoardProfile(boardId) {
+  if (!boardProfiles.has(boardId)) {
+    boardProfiles.set(boardId, await api.getBoard(boardId));
+  }
+  return boardProfiles.get(boardId);
 }
 
 async function ensureConversation() {
@@ -150,7 +183,7 @@ function startNewConversation() {
   writeConversationId(null);
   elements.lines.replaceChildren();
   updateMotd();
-  setDuckMood(elements.duck, "listening", UI_TEXT.duck.listening);
+  duck.speak("listening", UI_TEXT.duck.listening);
   elements.requestInput.focus();
 }
 
@@ -181,11 +214,11 @@ function trackCodeVersion(message) {
 
 function reactToReply(reply, codeVersion) {
   if (!reply.code) {
-    setDuckMood(elements.duck, "confused", UI_TEXT.duck.noCode);
+    duck.speak("confused", UI_TEXT.duck.noCode);
   } else if (codeVersion.repeatsVersion) {
-    setDuckMood(elements.duck, "confused", UI_TEXT.duck.unchanged(codeVersion.repeatsVersion));
+    duck.speak("confused", UI_TEXT.duck.unchanged(codeVersion.repeatsVersion));
   } else {
-    setDuckMood(elements.duck, "happy", UI_TEXT.duck.happy(codeVersion.version));
+    duck.speak("happy", UI_TEXT.duck.happy(codeVersion.version));
   }
 }
 
@@ -212,7 +245,13 @@ function updateMotd() {
 
 /** Lock the controls while the model works, so a second request cannot start meanwhile. */
 function lockControls(locked) {
-  for (const control of [elements.sendButton, elements.boardSelect, elements.newConversationButton]) {
+  const controls = [
+    elements.sendButton,
+    elements.boardSelect,
+    elements.newConversationButton,
+    elements.showBoardButton,
+  ];
+  for (const control of controls) {
     control.disabled = locked;
   }
   elements.requestInput.readOnly = locked;

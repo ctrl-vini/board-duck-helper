@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Board Code Assistant</title>
+    <title>Duckoder</title>
     <link rel="stylesheet" href="/css/base.css" />
     <link rel="stylesheet" href="/css/app.css" />
     <script type="module" src="/js/app.js"></script>
   </head>
   <body>
     <header class="status-bar">
-      <span class="status-bar__session">board-code-assistant</span>
+      <span class="status-bar__session">duckoder</span>
       <label class="board-field">
         <span data-text="boardLabel"></span>
         <select id="board-select" class="board-field__select"></select>
@@ -21,6 +21,7 @@
         class="terminal-button"
         data-text="newConversation"
       ></button>
+      <button type="button" id="show-board" class="terminal-button" data-text="showBoard"></button>
     </header>
 
     <main class="workspace">

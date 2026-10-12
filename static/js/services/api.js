@@ -15,6 +15,10 @@ export function listBoards() {
   return request("/boards");
 }
 
+export function getBoard(boardId) {
+  return request(`/boards/${encodeURIComponent(boardId)}`);
+}
+
 export function createConversation(boardId) {
   return request("/conversations", { method: "POST", body: { board_id: boardId } });
 }

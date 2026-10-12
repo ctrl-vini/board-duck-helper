@@ -172,7 +172,8 @@ body {
   overflow-wrap: anywhere;
 }
 
-.line--reply {
+.line--reply,
+.line--board {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
@@ -263,17 +264,62 @@ body {
   tab-size: 2;
 }
 
+/* Board view printed by the pinout command. */
+
+.board-view__title {
+  margin: 0;
+  color: var(--color-duck);
+  font-weight: 700;
+}
+
+.board-diagram {
+  margin: var(--space-2) 0;
+  overflow-x: auto;
+  color: var(--color-muted);
+  font: inherit;
+  line-height: 1.35;
+}
+
+.board-diagram__used {
+  color: var(--color-duck);
+}
+
+.wiring-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wiring-table th,
+.wiring-table td {
+  padding: var(--space-1) var(--space-3) var(--space-1) 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.wiring-table th {
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.wiring-table__component {
+  color: var(--color-duck);
+  white-space: nowrap;
+}
+
 /* The rubber duck the student explains the problem to. */
 
 .duck {
   align-self: end;
-  width: 30ch;
+  width: 36ch;
   padding: var(--space-4);
   color: var(--color-duck);
 }
 
 .duck__speech {
   position: relative;
+  /* Keeps one line of height while the text is still being typed. */
+  min-height: calc(var(--line-height) * 1em + 2 * var(--space-2) + 2px);
   margin: 0 0 var(--space-6);
   padding: var(--space-2) var(--space-3);
   border: 1px dashed var(--color-duck);
@@ -284,7 +330,7 @@ body {
 .duck__speech::after {
   content: "/";
   position: absolute;
-  left: 6ch;
+  left: 11ch;
   bottom: -1.5em;
   color: var(--color-duck);
 }
@@ -293,7 +339,7 @@ body {
 .duck__mini {
   margin: 0;
   font: inherit;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: pre;
 }
 
@@ -384,6 +430,7 @@ body {
   }
 
   .duck__speech {
+    min-height: calc(var(--line-height) * 1em);
     margin: 0;
     padding: 0;
     border: 0;
@@ -408,9 +455,11 @@ body {
     padding-left: var(--space-3);
   }
 
+  /* The board choice takes its own row, with the two actions below it. */
   .board-field {
-    flex: 1;
+    flex: 1 1 100%;
     min-width: 0;
+    padding-top: var(--space-2);
   }
 
   .board-field__select {
