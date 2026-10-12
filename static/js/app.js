@@ -284,6 +284,10 @@ function toggleBoardScope() {
 
 function closeBoardPane() {
   setBoardPaneOpen(false);
+  // What the duck said was about the pane; while a reply is on its way, it keeps thinking.
+  if (!isWaitingForReply()) {
+    duck.speak("listening", UI_TEXT.duck.listening);
+  }
   elements.requestInput.focus();
 }
 
@@ -424,6 +428,11 @@ function lockControls(locked) {
     control.disabled = locked;
   }
   elements.requestInput.readOnly = locked;
+}
+
+/** The prompt is read-only only while the model generates a reply. */
+function isWaitingForReply() {
+  return elements.requestInput.readOnly;
 }
 
 function setRequestText(text) {
