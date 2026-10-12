@@ -7,6 +7,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATIC_DIR = PROJECT_ROOT / "static"
 DEFAULT_BOARDS_DIR = PROJECT_ROOT / "data" / "boards"
+DEFAULT_CONVERSATIONS_DIR = PROJECT_ROOT / "data" / "conversations"
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class Settings:
     llm_context_size: int
     llm_keep_alive: str
     boards_dir: Path
+    conversations_dir: Path
     static_dir: Path
 
 
@@ -35,5 +37,6 @@ def load_settings() -> Settings:
         llm_context_size=int(os.getenv("APP_LLM_CONTEXT_SIZE", "8192")),
         llm_keep_alive=os.getenv("APP_LLM_KEEP_ALIVE", "30m"),
         boards_dir=Path(os.getenv("APP_BOARDS_DIR", str(DEFAULT_BOARDS_DIR))),
+        conversations_dir=Path(os.getenv("APP_CONVERSATIONS_DIR", str(DEFAULT_CONVERSATIONS_DIR))),
         static_dir=STATIC_DIR,
     )

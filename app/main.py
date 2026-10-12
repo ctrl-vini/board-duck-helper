@@ -1,22 +1,37 @@
-"""Application factory."""
+"""Application factory: the single place where the services are built and wired together."""
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from app.clients.llm_client import LlmClient, OllamaClient
 from app.config import Settings
-from app.routers import boards
+from app.errors import register_error_handlers
+from app.repositories.conversation_repository import ConversationRepository
+from app.routers import boards, conversations
 from app.services.board_registry import BoardRegistry
+from app.services.conversation_service import ConversationService
+from app.services.prompt_builder import PromptBuilder
 
 APP_TITLE = "Board Code Assistant"
 APP_VERSION = "0.1.0"
 
 
-def create_app(settings: Settings) -> FastAPI:
-    """Create the FastAPI application with its services, API routes and static frontend."""
+def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastAPI:
+    """Create the application; pass llm_client to replace the Ollama model, as tests do."""
     app = FastAPI(title=APP_TITLE, version=APP_VERSION)
-    app.state.board_registry = BoardRegistry.from_directory(settings.boards_dir)
 
+    board_registry = BoardRegistry.from_directory(settings.boards_dir)
+    app.state.board_registry = board_registry
+    app.state.conversation_service = ConversationService(
+        boards=board_registry,
+        conversations=ConversationRepository(settings.conversations_dir),
+        prompt_builder=PromptBuilder.from_file(),
+        llm_client=llm_client or OllamaClient.from_settings(settings),
+    )
+
+    register_error_handlers(app)
     app.include_router(boards.router)
+    app.include_router(conversations.router)
 
     # Mounted at "/", the frontend would capture every API route, so it must be registered last.
     app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="frontend")

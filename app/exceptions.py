@@ -21,3 +21,11 @@ class InvalidBoardProfileError(Exception):
 
 class LlmUnavailableError(Exception):
     """Raised when the language model cannot produce a reply (service down, model missing...)."""
+
+
+class ConversationNotFoundError(Exception):
+    """Raised when no conversation exists for the requested id."""
+
+    def __init__(self, conversation_id: str) -> None:
+        super().__init__(f"Conversation not found: {conversation_id}")
+        self.conversation_id = conversation_id

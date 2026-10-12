@@ -52,7 +52,7 @@ documentation is available at `/docs`.
 All settings are environment variables with defaults, so nothing needs to be set to get started.
 
 | Variable | Default | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `APP_HOST` | `0.0.0.0` | Network interface the server listens on |
 | `APP_PORT` | `8000` | Server port |
 | `APP_OLLAMA_URL` | `http://localhost:11434` | Address of the Ollama service |
@@ -61,8 +61,22 @@ All settings are environment variables with defaults, so nothing needs to be set
 | `APP_LLM_CONTEXT_SIZE` | `8192` | Context window in tokens; Ollama silently drops what exceeds it |
 | `APP_LLM_KEEP_ALIVE` | `30m` | How long Ollama keeps the model loaded after the last request |
 | `APP_BOARDS_DIR` | `data/boards` | Folder with the board profiles |
+| `APP_CONVERSATIONS_DIR` | `data/conversations` | Folder where each conversation is saved as JSON |
 
 Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
+
+## API
+
+| Method | Path | Body | Response |
+| --- | --- | --- | --- |
+| GET | `/boards` | — | `200` boards with `id`, `name`, `microcontroller` |
+| POST | `/conversations` | `{"board_id"}` | `201` the new, empty conversation |
+| POST | `/conversations/{id}/messages` | `{"content"}` | `201` the model's reply, with `code`, `explanation` and `metrics` |
+| GET | `/conversations/{id}` | — | `200` the conversation with every message |
+
+Errors use `{"detail": "..."}`: `404` for an unknown board or conversation, `422` for an invalid
+body, `502` when Ollama cannot answer. If the model fails, nothing is saved, so the student can
+simply send the message again. Try every route from `/docs`.
 
 ## Adding a board
 

@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings, load_settings
 from app.main import create_app
 from app.schemas.board import BoardProfile
+from tests.fakes import FakeLlmClient
 
 
 @pytest.fixture
@@ -45,10 +46,20 @@ def boards_dir(tmp_path: Path, board_profile_data: dict[str, Any]) -> Path:
 @pytest.fixture
 def settings(boards_dir: Path) -> Settings:
     """Default settings pointed at the temporary data directories."""
-    return replace(load_settings(), boards_dir=boards_dir)
+    return replace(
+        load_settings(),
+        boards_dir=boards_dir,
+        conversations_dir=boards_dir.parent / "conversations",
+    )
 
 
 @pytest.fixture
-def client(settings: Settings) -> TestClient:
-    """HTTP client bound to a fresh application instance."""
-    return TestClient(create_app(settings))
+def llm_client() -> FakeLlmClient:
+    """Fake model that replies instantly with a fixed answer."""
+    return FakeLlmClient()
+
+
+@pytest.fixture
+def client(settings: Settings, llm_client: FakeLlmClient) -> TestClient:
+    """HTTP client bound to a fresh application that uses the fake model."""
+    return TestClient(create_app(settings, llm_client))

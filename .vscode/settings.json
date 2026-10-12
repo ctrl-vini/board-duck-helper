@@ -20,6 +20,13 @@
     ".ruff_cache": true
   },
   "cSpell.words": [
-    "ollama"
+    "cada",
+    "embutido",
+    "microcontroller",
+    "ollama",
+    "Pisque",
+    "pytest",
+    "qwen",
+    "venv"
   ]
 }
