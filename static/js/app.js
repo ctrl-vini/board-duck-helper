@@ -30,6 +30,7 @@ const elements = {
   boardPane: document.getElementById("board-pane"),
   boardPaneCommand: document.getElementById("board-pane-command"),
   boardPaneBody: document.getElementById("board-pane-body"),
+  boardScopeButton: document.getElementById("board-scope"),
   closeBoardButton: document.getElementById("close-board"),
   showAboutButton: document.getElementById("show-about"),
   motd: document.getElementById("motd"),
@@ -52,10 +53,16 @@ const state = {
   conversationId: null,
   codeVersion: 0,
   latestCode: null,
+  // Replies with code are referred to as { messageId, version }.
+  latestCodeReply: null,
+  // What the board pane shows: the wiring of one reply's code, or the whole board when null.
+  boardPaneReply: null,
 };
 
-// Board profiles never change while the server runs, so each one is fetched once.
+// Board profiles never change while the server runs, so each one is fetched once; so is the
+// pin usage of each reply, since its code never changes either.
 const boardProfiles = new Map();
+const pinUsages = new Map();
 
 // What each local command does; the names students can type for them are in UI_TEXT.commands.
 const LOCAL_COMMANDS = {
@@ -81,6 +88,7 @@ async function init() {
   elements.clearConversationButton.addEventListener("click", askToClearConversation);
   elements.showBoardButton.addEventListener("click", toggleBoardPane);
   elements.closeBoardButton.addEventListener("click", closeBoardPane);
+  elements.boardScopeButton.addEventListener("click", toggleBoardScope);
   elements.showAboutButton.addEventListener("click", () => aboutDialog.open());
   elements.boardSelect.addEventListener("change", changeBoard);
 
@@ -159,6 +167,10 @@ async function handleSubmit(event) {
     pending.remove();
     const codeVersion = appendMessage(reply, "start");
     reactToReply(reply, codeVersion);
+    if (reply.code) {
+      // An open board pane moves on to the new version, so it never shows outdated pins.
+      refreshBoardPane(state.latestCodeReply);
+    }
   } catch (error) {
     // The server stores nothing when a request fails, so the screen drops it too and
     // gives the text back for another try.
@@ -201,23 +213,73 @@ function quack() {
   duck.speak("happy", quacks[Math.floor(Math.random() * quacks.length)]);
 }
 
+/** Open the board pane on the latest code version, or on the whole board before any code. */
+function openBoardPane() {
+  return showBoard(state.latestCodeReply);
+}
+
 /**
- * Show the board drawing and wiring guide in a pane beside the conversation, like a terminal
- * split, so the pins stay in view while the student reads the code.
+ * Show the board in a pane beside the conversation, like a terminal split, so the pins stay in
+ * view while the student reads the code. For a reply, only what its code uses is shown.
  */
-async function openBoardPane() {
+async function showBoard(reply) {
   clearErrors();
   try {
-    const profile = await loadBoardProfile(elements.boardSelect.value);
-    elements.boardPaneBody.replaceChildren(renderBoardView(profile));
-    elements.boardPaneBody.scrollTop = 0;
+    const wiring = await renderBoardPane(reply);
     setBoardPaneOpen(true);
-    duck.speak("happy", UI_TEXT.duck.board);
+    speakAboutBoard(wiring);
   } catch (error) {
     showError(errorMessageFor(error));
     duck.speak("confused", UI_TEXT.duck.confused);
   }
   elements.requestInput.focus();
+}
+
+/** Draw the whole board, or what one reply's code uses, in the pane; returns that wiring. */
+async function renderBoardPane(reply) {
+  const profile = await loadBoardProfile(elements.boardSelect.value);
+  const wiring = reply
+    ? { version: reply.version, usage: await loadPinUsage(reply.messageId) }
+    : null;
+  elements.boardPaneBody.replaceChildren(renderBoardView(profile, wiring));
+  elements.boardPaneBody.scrollTop = 0;
+  state.boardPaneReply = reply;
+  updateBoardScopeButton();
+  return wiring;
+}
+
+/** Redraw an open pane without the duck's comment, when the conversation changes under it. */
+function refreshBoardPane(reply) {
+  if (isBoardPaneOpen()) {
+    renderBoardPane(reply).catch((error) => showError(errorMessageFor(error)));
+  }
+}
+
+function speakAboutBoard(wiring) {
+  if (!wiring) {
+    duck.speak("happy", UI_TEXT.duck.board);
+  } else if (wiring.usage.unlisted_gpios.length > 0) {
+    duck.speak("confused", UI_TEXT.duck.unlistedGpios(wiring.version, wiring.usage.unlisted_gpios));
+  } else if (wiring.usage.components.length === 0) {
+    duck.speak("happy", UI_TEXT.duck.noComponents(wiring.version));
+  } else {
+    duck.speak("happy", UI_TEXT.duck.wiring(wiring.version));
+  }
+}
+
+/** Once there is code, the pane switches between its wiring and the whole board. */
+function updateBoardScopeButton() {
+  const latest = state.latestCodeReply;
+  elements.boardScopeButton.hidden = !latest;
+  if (latest) {
+    elements.boardScopeButton.textContent = state.boardPaneReply
+      ? UI_TEXT.fullBoard
+      : UI_TEXT.versionWiring(latest.version);
+  }
+}
+
+function toggleBoardScope() {
+  showBoard(state.boardPaneReply ? null : state.latestCodeReply);
 }
 
 function closeBoardPane() {
@@ -245,9 +307,6 @@ function isBoardPaneOpen() {
 /** A conversation belongs to one board: picking another starts over, and an open pane follows. */
 function changeBoard() {
   startNewConversation();
-  if (isBoardPaneOpen()) {
-    openBoardPane();
-  }
 }
 
 async function loadBoardProfile(boardId) {
@@ -255,6 +314,13 @@ async function loadBoardProfile(boardId) {
     boardProfiles.set(boardId, await api.getBoard(boardId));
   }
   return boardProfiles.get(boardId);
+}
+
+async function loadPinUsage(messageId) {
+  if (!pinUsages.has(messageId)) {
+    pinUsages.set(messageId, await api.getPinUsage(state.conversationId, messageId));
+  }
+  return pinUsages.get(messageId);
 }
 
 async function ensureConversation() {
@@ -276,9 +342,11 @@ function startNewConversation() {
   state.conversationId = null;
   state.codeVersion = 0;
   state.latestCode = null;
+  state.latestCodeReply = null;
   writeConversationId(null);
   elements.lines.replaceChildren();
   updateMotd();
+  refreshBoardPane(null);
   duck.speak("listening", UI_TEXT.duck.listening);
   elements.requestInput.focus();
 }
@@ -290,7 +358,9 @@ function appendMessage(message, scrollAlignment = "nearest") {
     return null;
   }
   const codeVersion = trackCodeVersion(message);
-  appendToTranscript(renderReply(message, codeVersion), scrollAlignment);
+  const reply = { messageId: message.id, version: codeVersion.version };
+  const showWiring = () => showBoard(reply);
+  appendToTranscript(renderReply(message, codeVersion, showWiring), scrollAlignment);
   return codeVersion;
 }
 
@@ -305,6 +375,7 @@ function trackCodeVersion(message) {
   const repeatsVersion = message.code === state.latestCode ? state.codeVersion : null;
   state.codeVersion += 1;
   state.latestCode = message.code;
+  state.latestCodeReply = { messageId: message.id, version: state.codeVersion };
   return { version: state.codeVersion, repeatsVersion };
 }
 
@@ -346,6 +417,8 @@ function lockControls(locked) {
     elements.boardSelect,
     elements.clearConversationButton,
     elements.showBoardButton,
+    elements.boardScopeButton,
+    ...elements.lines.querySelectorAll(".code-block__wiring"),
   ];
   for (const control of controls) {
     control.disabled = locked;

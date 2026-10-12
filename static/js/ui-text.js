@@ -2,6 +2,15 @@
 
 export const LOCALE = "pt-BR";
 
+const listFormat = new Intl.ListFormat(LOCALE, { type: "conjunction" });
+
+/** "o GPIO 13" or "os GPIOs 12 e 13", to name the pins a code uses. */
+function gpioList(gpios) {
+  return gpios.length === 1
+    ? `o GPIO ${gpios[0]}`
+    : `os GPIOs ${listFormat.format(gpios.map(String))}`;
+}
+
 export const UI_TEXT = {
   boardLabel: "placa:",
   clearConversation: "limpar conversa",
@@ -23,7 +32,7 @@ export const UI_TEXT = {
     headers: ["comando", "o que faz", "atalho"],
     entries: [
       { command: "help", description: "mostra esta lista" },
-      { command: "pinout", description: "mostra a placa e como ligar cada componente", key: "p" },
+      { command: "pinout", description: "mostra a placa e o que ligar para o código", key: "p" },
       { command: "clear", description: "limpa a conversa e começa do zero", key: "l" },
       { command: "about", description: "mostra o sobre do Duckoder", key: "s" },
       { command: "quack", description: "o pato faz quack" },
@@ -58,6 +67,14 @@ export const UI_TEXT = {
   pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
   noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
+  showWiring: "ver ligações",
+  fullBoard: "placa completa",
+  versionWiring: (version) => `ligações da versão ${version}`,
+  wiringOfVersion: (version) => `ligações da versão ${version}: só o que o código usa`,
+  noComponentsUsed: (version) => `o código da versão ${version} não usa nenhum componente da placa`,
+  unlistedGpios: (gpios) =>
+    `atenção: o código usa ${gpioList(gpios)}, mas não há componente ligado ${gpios.length === 1 ? "nele" : "neles"}`,
+  unlistedPinNote: "sem componente",
   requestLabel: "O que a placa deve fazer?",
   send: "enviar",
   sendHint: "enter envia, shift + enter quebra a linha",
@@ -97,6 +114,11 @@ export const UI_TEXT = {
       `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
     board: "Abri a placa num painel. Os pinos em amarelo já têm componente ligado.",
+    wiring: (version) =>
+      `Essas são as ligações da versão ${version}. Os pinos em amarelo são os que o código usa.`,
+    noComponents: (version) => `A versão ${version} não usa nenhum componente da placa.`,
+    unlistedGpios: (version, gpios) =>
+      `Hmm, a versão ${version} usa ${gpioList(gpios)}, e não tem nada ligado ${gpios.length === 1 ? "nele" : "neles"}.`,
     help: "Esses são os comandos que eu entendo.",
     quacks: ["Quack!", "Quack quack!", "QUACK!"],
   },

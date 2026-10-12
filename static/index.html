@@ -75,7 +75,15 @@
       <section class="pane pane--board" id="board-pane" hidden>
         <div class="pane__header">
           <p class="pane__command" id="board-pane-command"></p>
-          <button type="button" id="close-board" class="terminal-button" data-text="close"></button>
+          <div class="pane__actions">
+            <button type="button" id="board-scope" class="terminal-button" hidden></button>
+            <button
+              type="button"
+              id="close-board"
+              class="terminal-button"
+              data-text="close"
+            ></button>
+          </div>
         </div>
         <div class="pane__body" id="board-pane-body"></div>
       </section>

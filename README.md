@@ -63,6 +63,9 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
 - Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
+- `[ ver ligações ]`, on each version, opens the board with only what that code uses: its pins
+  highlighted, how to wire each of its components, and a warning in red for any pin it uses that
+  has no component wired to it, usually a pin the model made up.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
   out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
   confused. Animations stop when the system asks for reduced motion.
@@ -75,7 +78,7 @@ A few words typed at the prompt are commands that the page answers by itself, wi
 | Command | Also | What it does | Shortcut |
 | --- | --- | --- | --- |
 | `help` | `ajuda` | Prints the commands and their shortcuts | — |
-| `pinout` | — | Opens the board in a pane beside the conversation, like a split terminal: the header pins with the ones in use highlighted, and how to wire each component. The duck shrinks to one line to make room; on small screens the pane takes the whole screen until `[ fechar ]` | Ctrl + P |
+| `pinout` | — | Opens the board in a pane beside the conversation, like a split terminal. Before any code it shows every component; afterwards, what the latest version uses, following each new version, and `[ placa completa ]` switches back to every component. The duck shrinks to one line to make room; on small screens the pane takes the whole screen until `[ fechar ]` | Ctrl + P |
 | `clear` | `cls`, `reset`, `clear-host`, `clc` | Asks for confirmation (Enter clears, Esc cancels) and empties the screen; the next request starts a new conversation, so the model no longer sees the earlier messages | Ctrl + L |
 | `about` | `sobre` | Shows what Duckoder is, the running version and the credits | Ctrl + S |
 | `quack` | — | The duck quacks, with a sound made by the Web Audio API | — |
@@ -198,9 +201,11 @@ With Ollama and the server running, from another device on the same network:
 1. Open the address from the server log; the board list loads.
 2. Run `help`, then `pinout`: the commands print, and the board opens in a pane beside the
    conversation.
-3. Send "Pisque o LED embutido a cada segundo"; the code appears as "versão 1".
+3. Send "Pisque o LED embutido a cada segundo"; the code appears as "versão 1", and the open
+   pane switches to it, with only the built-in LED highlighted.
 4. Ask for a change, such as "Tire os comentários do código"; "versão 2" applies it.
-5. Reload the page; the conversation comes back from the address.
-6. Copy the code; it pastes intact into the Arduino IDE.
-7. Type `clear` and confirm; the screen empties and the next reply starts again at "versão 1".
-8. Stop Ollama and send a request; a readable error appears and the duck looks confused.
+5. Click `[ ver ligações ]` on "versão 1"; the pane shows that version again.
+6. Reload the page; the conversation comes back from the address.
+7. Copy the code; it pastes intact into the Arduino IDE.
+8. Type `clear` and confirm; the screen empties and the next reply starts again at "versão 1".
+9. Stop Ollama and send a request; a readable error appears and the duck looks confused.

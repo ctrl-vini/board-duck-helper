@@ -14,13 +14,14 @@ export function renderCommandLine(content) {
 /**
  * A model reply: code (when there is any), the duck's explanation and how it was generated.
  * codeVersion is { version, repeatsVersion }: repeatsVersion is set when the code is identical
- * to an earlier version, so the student knows the request had no effect.
+ * to an earlier version, so the student knows the request had no effect. onShowWiring opens
+ * what to wire for the code.
  */
-export function renderReply(message, codeVersion) {
+export function renderReply(message, codeVersion, onShowWiring) {
   const line = createElement("li", "line line--reply");
 
   if (message.code) {
-    line.append(renderCodeBlock(message.code, codeVersion.version));
+    line.append(renderCodeBlock(message.code, codeVersion.version, onShowWiring));
   } else {
     line.append(renderComment(UI_TEXT.noCode));
   }

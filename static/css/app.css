@@ -184,6 +184,7 @@ body {
 
 .pane__header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3);
@@ -192,6 +193,14 @@ body {
 
 .pane__command {
   margin: 0;
+}
+
+/* On narrow panes the actions move below the command, together, instead of stacking. */
+.pane__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .pane__body {
@@ -358,6 +367,7 @@ body {
 
 .code-block__header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3);
@@ -365,6 +375,16 @@ body {
   border-bottom: 1px solid var(--color-rule);
   font-size: var(--text-small);
   color: var(--color-muted);
+}
+
+.code-block__actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.code-block__wiring {
+  color: var(--color-text);
 }
 
 .code-block__body {
@@ -399,6 +419,16 @@ body {
 
 .board-diagram__used {
   color: var(--color-duck);
+}
+
+/* A pin the code uses with nothing wired to it: usually a pin the model made up. */
+.board-diagram__unlisted,
+.board-view__warning {
+  color: var(--color-error);
+}
+
+.board-view__warning {
+  margin: 0;
 }
 
 /* Tables printed like command output: the wiring guide and the help. */

@@ -34,6 +34,12 @@ export function sendMessage(conversationId, content) {
   });
 }
 
+export function getPinUsage(conversationId, messageId) {
+  const conversation = encodeURIComponent(conversationId);
+  const message = encodeURIComponent(messageId);
+  return request(`/conversations/${conversation}/messages/${message}/pin-usage`);
+}
+
 export function getVersion() {
   return request("/version");
 }
