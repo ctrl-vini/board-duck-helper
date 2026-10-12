@@ -57,7 +57,7 @@ debugging:
 
 - Requests are typed at a shell prompt: Enter sends, Shift+Enter adds a line.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
-  refinement that comes back with the same code as an earlier version is flagged.
+  refinement that comes back with the same code as the previous version is flagged.
 - The duck talks while its message is typed out, and its face shows whether it is listening,
   thinking, happy or confused. Animations stop when the system asks for reduced motion.
 - `[ ver placa ]`, or typing `pinout` at the prompt, prints the board: a diagram of the header
