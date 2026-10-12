@@ -2,25 +2,54 @@
 
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 BOARD_ID_PATTERN = r"^[a-z0-9][a-z0-9-]*$"
 
 
-class Component(BaseModel):
-    """A peripheral wired to the board and the pin it uses."""
+class ProfileModel(BaseModel):
+    """Base for profile parts: immutable, and unknown keys are rejected to catch typos."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
+
+
+class ComponentPin(ProfileModel):
+    """A GPIO used by a component, with its role when the component uses several (e.g. SDA)."""
+
+    gpio: int = Field(ge=0)
+    role: str | None = None
+
+
+class Component(ProfileModel):
+    """A peripheral wired to the board: the pins it uses and how to connect it."""
 
     name: str = Field(min_length=1)
     type: str = Field(min_length=1)
-    pin: str = Field(min_length=1)
+    pins: list[ComponentPin] = Field(min_length=1)
+    wiring: str | None = None
 
 
-class BoardProfile(BaseModel):
-    """Full hardware description of a board, used as context for the language model."""
+class HeaderPin(ProfileModel):
+    """One pin of the board's header; gpio is empty for power and ground pins."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    label: str = Field(min_length=1)
+    gpio: int | None = Field(default=None, ge=0)
+
+
+class Pinout(ProfileModel):
+    """Physical order of the header pins on each side, used to draw the board for students."""
+
+    caption: str | None = None
+    left: list[HeaderPin] = Field(min_length=1)
+    right: list[HeaderPin] = Field(min_length=1)
+
+    def gpios(self) -> set[int]:
+        """Every GPIO number available on the header."""
+        return {pin.gpio for pin in (*self.left, *self.right) if pin.gpio is not None}
+
+
+class BoardProfile(ProfileModel):
+    """Full hardware description of a board, used as model context and shown to students."""
 
     id: str = Field(pattern=BOARD_ID_PATTERN)
     name: str = Field(min_length=1)
@@ -29,10 +58,22 @@ class BoardProfile(BaseModel):
     framework: str = Field(min_length=1)
     components: list[Component] = Field(min_length=1)
     notes: list[str] = Field(default_factory=list)
+    pinout: Pinout | None = None
+
+    @model_validator(mode="after")
+    def check_component_pins_exist(self) -> Self:
+        """Every GPIO a component uses must exist on the header, when the layout is given."""
+        if self.pinout is None:
+            return self
+        used = {pin.gpio for component in self.components for pin in component.pins}
+        missing = sorted(used - self.pinout.gpios())
+        if missing:
+            raise ValueError(f"components use GPIOs missing from the pinout: {missing}")
+        return self
 
 
 class BoardSummary(BaseModel):
-    """Public view of a board; the full profile never leaves the server."""
+    """Board entry in the board list."""
 
     id: str
     name: str
@@ -40,5 +81,5 @@ class BoardSummary(BaseModel):
 
     @classmethod
     def from_profile(cls, profile: BoardProfile) -> Self:
-        """Build the public view from a full profile."""
+        """Build the list entry from a full profile."""
         return cls(id=profile.id, name=profile.name, microcontroller=profile.microcontroller)

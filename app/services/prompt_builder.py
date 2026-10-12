@@ -10,8 +10,11 @@ from app.schemas.board import BoardProfile
 
 SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "system_prompt.txt"
 # Stored with every reply so each generated code can be traced to the prompt that produced it.
-# Bump it whenever system_prompt.txt changes.
-PROMPT_VERSION = "v3"
+# Bump it whenever system_prompt.txt or the way the profile is serialized changes.
+PROMPT_VERSION = "v4"
+# The header layout and the wiring instructions are for the student's board view; the model
+# only needs the components and their pins, and a shorter prompt is faster to process.
+PROFILE_FIELDS_LEFT_OUT_OF_PROMPT = {"pinout": True, "components": {"__all__": {"wiring"}}}
 
 
 class PromptBuilder:
@@ -38,5 +41,5 @@ class PromptBuilder:
             language=profile.language,
             framework=profile.framework,
             # Compact JSON: every token of the system prompt is re-read on each request.
-            board_profile=profile.model_dump_json(),
+            board_profile=profile.model_dump_json(exclude=PROFILE_FIELDS_LEFT_OUT_OF_PROMPT),
         )

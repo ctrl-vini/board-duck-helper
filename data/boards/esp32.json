@@ -1,26 +1,116 @@
 {
   "id": "esp32",
   "name": "ESP32 DevKit V1",
-  "microcontroller": "ESP32 (dual-core Xtensa LX6, 240 MHz, WiFi and Bluetooth)",
+  "microcontroller": "ESP32 (dual-core Xtensa LX6, 240 MHz, WiFi e Bluetooth)",
   "language": "C++",
-  "framework": "Arduino (ESP32 core)",
+  "framework": "Arduino (núcleo ESP32)",
   "components": [
-    { "name": "Built-in LED", "type": "digital output", "pin": "GPIO 2" },
-    { "name": "Green LED", "type": "digital output", "pin": "GPIO 25" },
-    { "name": "Yellow LED", "type": "digital output", "pin": "GPIO 26" },
-    { "name": "Red LED", "type": "digital output", "pin": "GPIO 27" },
-    { "name": "Push button", "type": "digital input, wired to GND, use the internal pull-up", "pin": "GPIO 4" },
-    { "name": "Passive buzzer", "type": "PWM output", "pin": "GPIO 18" },
-    { "name": "DHT22 temperature and humidity sensor", "type": "single-wire digital", "pin": "GPIO 15" },
-    { "name": "Potentiometer", "type": "analog input (12-bit ADC, 0 to 4095)", "pin": "GPIO 34" },
-    { "name": "SSD1306 OLED display, 128x64, address 0x3C", "type": "I2C", "pin": "SDA GPIO 21, SCL GPIO 22" },
-    { "name": "Relay module", "type": "digital output, active HIGH", "pin": "GPIO 23" }
+    {
+      "name": "LED embutido",
+      "type": "saída digital",
+      "pins": [{ "gpio": 2 }],
+      "wiring": "Já vem soldado na placa; não precisa ligar nada."
+    },
+    {
+      "name": "LED verde",
+      "type": "saída digital",
+      "pins": [{ "gpio": 25 }],
+      "wiring": "GPIO 25 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "LED amarelo",
+      "type": "saída digital",
+      "pins": [{ "gpio": 26 }],
+      "wiring": "GPIO 26 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "LED vermelho",
+      "type": "saída digital",
+      "pins": [{ "gpio": 27 }],
+      "wiring": "GPIO 27 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "Botão",
+      "type": "entrada digital com pull-up interno",
+      "pins": [{ "gpio": 4 }],
+      "wiring": "Um terminal no GPIO 4 e o outro no GND; o pull-up interno dispensa resistor."
+    },
+    {
+      "name": "Buzzer",
+      "type": "buzzer passivo, saída PWM",
+      "pins": [{ "gpio": 18 }],
+      "wiring": "Positivo (+) no GPIO 18 e negativo (−) no GND."
+    },
+    {
+      "name": "Sensor DHT22",
+      "type": "sensor de temperatura e umidade, digital de um fio",
+      "pins": [{ "gpio": 15 }],
+      "wiring": "VCC no 3V3, DATA no GPIO 15 com resistor de 10 kΩ para o 3V3, GND no GND."
+    },
+    {
+      "name": "Potenciômetro",
+      "type": "entrada analógica (ADC de 12 bits, 0 a 4095)",
+      "pins": [{ "gpio": 34 }],
+      "wiring": "Extremidades no 3V3 e no GND; pino do meio no GPIO 34."
+    },
+    {
+      "name": "Display OLED",
+      "type": "SSD1306 128x64, I2C, endereço 0x3C",
+      "pins": [
+        { "gpio": 21, "role": "SDA" },
+        { "gpio": 22, "role": "SCL" }
+      ],
+      "wiring": "VCC no 3V3, GND no GND, SDA no GPIO 21 e SCL no GPIO 22."
+    },
+    {
+      "name": "Relé",
+      "type": "módulo relé, saída digital ativa em nível alto",
+      "pins": [{ "gpio": 23 }],
+      "wiring": "IN no GPIO 23, VCC no VIN (5 V) e GND no GND."
+    }
   ],
   "notes": [
-    "GPIO 34 to 39 are input only and have no internal pull-up or pull-down resistors.",
-    "ADC2 pins cannot read analog values while WiFi is active; analog inputs use ADC1 pins (GPIO 32 to 39).",
-    "Use the Adafruit SSD1306 and Adafruit GFX libraries for the display.",
-    "Use the Adafruit DHT sensor library for the DHT22.",
-    "The serial monitor runs at 115200 baud."
-  ]
+    "Os GPIO 34 a 39 são somente entrada e não têm pull-up nem pull-down internos.",
+    "Os pinos do ADC2 não leem valores analógicos com o WiFi ligado; entradas analógicas usam pinos do ADC1 (GPIO 32 a 39).",
+    "Use as bibliotecas Adafruit SSD1306 e Adafruit GFX para o display.",
+    "Use a biblioteca DHT sensor library, da Adafruit, para o DHT22.",
+    "O monitor serial usa 115200 baud."
+  ],
+  "pinout": {
+    "caption": "Vista de cima, com a antena no topo e o USB embaixo (modelo de 30 pinos).",
+    "left": [
+      { "label": "EN" },
+      { "label": "VP", "gpio": 36 },
+      { "label": "VN", "gpio": 39 },
+      { "label": "D34", "gpio": 34 },
+      { "label": "D35", "gpio": 35 },
+      { "label": "D32", "gpio": 32 },
+      { "label": "D33", "gpio": 33 },
+      { "label": "D25", "gpio": 25 },
+      { "label": "D26", "gpio": 26 },
+      { "label": "D27", "gpio": 27 },
+      { "label": "D14", "gpio": 14 },
+      { "label": "D12", "gpio": 12 },
+      { "label": "D13", "gpio": 13 },
+      { "label": "GND" },
+      { "label": "VIN" }
+    ],
+    "right": [
+      { "label": "D23", "gpio": 23 },
+      { "label": "D22", "gpio": 22 },
+      { "label": "TX0", "gpio": 1 },
+      { "label": "RX0", "gpio": 3 },
+      { "label": "D21", "gpio": 21 },
+      { "label": "D19", "gpio": 19 },
+      { "label": "D18", "gpio": 18 },
+      { "label": "D5", "gpio": 5 },
+      { "label": "TX2", "gpio": 17 },
+      { "label": "RX2", "gpio": 16 },
+      { "label": "D4", "gpio": 4 },
+      { "label": "D2", "gpio": 2 },
+      { "label": "D15", "gpio": 15 },
+      { "label": "GND" },
+      { "label": "3V3" }
+    ]
+  }
 }

@@ -23,7 +23,7 @@ def board_profile_data() -> dict[str, Any]:
         "microcontroller": "ESP32",
         "language": "C++",
         "framework": "Arduino",
-        "components": [{"name": "LED", "type": "digital output", "pin": "GPIO 2"}],
+        "components": [{"name": "LED", "type": "digital output", "pins": [{"gpio": 2}]}],
         "notes": ["Example note"],
     }
 
