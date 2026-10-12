@@ -89,8 +89,9 @@ page they replace the browser's own (address bar, printing and saving), which st
 from the browser's menu.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
-from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
-License, with ligatures turned off so operators such as `<=` show the exact characters to type.
+from the internet. The JetBrains Mono NL font is bundled in `static/fonts/` under the SIL Open
+Font License: the build without ligatures, so operators such as `<=` show the exact characters to
+type, and with its box drawing characters, so the drawings line up on every system.
 
 ## Configuration
 

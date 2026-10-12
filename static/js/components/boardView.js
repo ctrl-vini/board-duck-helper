@@ -1,7 +1,8 @@
 import { UI_TEXT } from "../ui-text.js";
 import { createElement } from "../utils/dom.js";
 
-const PIN_HOLE = "○";
+// "◯" rather than "○", which the bundled font lacks: a glyph from another font may be wider.
+const PIN_HOLE = "◯";
 const BOARD_INNER_WIDTH = 12;
 const BOARD_CHIP_LABEL = "ESP32";
 const BOARD_PORT_LABEL = "[USB]";
