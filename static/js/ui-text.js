@@ -6,7 +6,8 @@ export const UI_TEXT = {
   boardLabel: "placa:",
   clearConversation: "limpar conversa",
   showBoard: "ver placa",
-  closeBoard: "fechar",
+  about: "sobre",
+  close: "fechar",
   boardPaneLabel: "Placa e ligações",
   pinoutCommand: "pinout",
   // Clear-screen commands students may know: Unix shells, Windows cmd and PowerShell, MATLAB.
@@ -17,6 +18,23 @@ export const UI_TEXT = {
   clearDialogHint: "enter limpa, esc cancela",
   cancel: "cancelar",
   clear: "limpar",
+  aboutDialog: {
+    title: "Sobre o Duckoder",
+    command: "duckoder --sobre",
+    version: (version) => `versão ${version}`,
+    description:
+      "Plataforma web que gera código para placas didáticas a partir de pedidos em português, com um modelo de linguagem que roda na própria rede local.",
+    details: [
+      { label: "autor", value: "ctrl-vini", href: "https://github.com/ctrl-vini" },
+      {
+        label: "código",
+        value: "github.com/ctrl-vini/board-duck-helper",
+        href: "https://github.com/ctrl-vini/board-duck-helper",
+      },
+      { label: "fonte", value: "JetBrains Mono, sob a SIL Open Font License 1.1" },
+    ],
+    copyright: "© 2026 José Vinícius Alves de Oliveira. Todos os direitos reservados.",
+  },
   wiringHeaders: ["componente", "pinos", "como ligar"],
   pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),

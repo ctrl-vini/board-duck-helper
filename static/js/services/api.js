@@ -34,6 +34,10 @@ export function sendMessage(conversationId, content) {
   });
 }
 
+export function getVersion() {
+  return request("/version");
+}
+
 async function request(path, { method = "GET", body } = {}) {
   let response;
   try {

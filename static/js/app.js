@@ -1,6 +1,7 @@
 // Wires the terminal screen to the API: board choice, conversation history and sending requests.
 
 import * as api from "./services/api.js";
+import { createAboutDialog } from "./components/about.js";
 import { fillBoardSelect } from "./components/boardSelect.js";
 import { renderBoardView } from "./components/boardView.js";
 import { createConfirmDialog } from "./components/confirmDialog.js";
@@ -28,6 +29,7 @@ const elements = {
   boardPaneCommand: document.getElementById("board-pane-command"),
   boardPaneBody: document.getElementById("board-pane-body"),
   closeBoardButton: document.getElementById("close-board"),
+  showAboutButton: document.getElementById("show-about"),
   motd: document.getElementById("motd"),
   lines: document.getElementById("lines"),
   promptForm: document.getElementById("prompt-form"),
@@ -38,6 +40,11 @@ const elements = {
 
 const duck = createDuck(document.getElementById("duck"));
 const clearDialog = createConfirmDialog(document.getElementById("clear-dialog"));
+const aboutDialog = createAboutDialog(
+  document.getElementById("about-dialog"),
+  document.getElementById("about-content"),
+  api.getVersion,
+);
 
 const state = {
   conversationId: null,
@@ -63,6 +70,7 @@ async function init() {
   elements.clearConversationButton.addEventListener("click", askToClearConversation);
   elements.showBoardButton.addEventListener("click", toggleBoardPane);
   elements.closeBoardButton.addEventListener("click", closeBoardPane);
+  elements.showAboutButton.addEventListener("click", () => aboutDialog.open());
   elements.boardSelect.addEventListener("change", changeBoard);
 
   if (await loadBoards()) {

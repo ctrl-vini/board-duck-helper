@@ -18,19 +18,27 @@
         <span data-text="boardLabel"></span>
         <select id="board-select" class="board-field__select"></select>
       </label>
-      <button type="button" id="clear-conversation" class="terminal-button" data-shortcut="l">
-        <span data-text="clearConversation"></span>
-      </button>
+      <div class="status-bar__actions">
+        <button type="button" id="clear-conversation" class="terminal-button" data-shortcut="l">
+          <span data-text="clearConversation"></span>
+        </button>
+        <button
+          type="button"
+          id="show-board"
+          class="terminal-button"
+          data-shortcut="p"
+          aria-controls="board-pane"
+          aria-expanded="false"
+        >
+          <span data-text="showBoard"></span>
+        </button>
+      </div>
       <button
         type="button"
-        id="show-board"
-        class="terminal-button"
-        data-shortcut="p"
-        aria-controls="board-pane"
-        aria-expanded="false"
-      >
-        <span data-text="showBoard"></span>
-      </button>
+        id="show-about"
+        class="terminal-button status-bar__about"
+        data-text="about"
+      ></button>
     </header>
 
     <!-- Split like a terminal: the conversation, and the board pane beside it when open. -->
@@ -65,28 +73,37 @@
       <section class="pane pane--board" id="board-pane" hidden>
         <div class="pane__header">
           <p class="pane__command" id="board-pane-command"></p>
-          <button
-            type="button"
-            id="close-board"
-            class="terminal-button"
-            data-text="closeBoard"
-          ></button>
+          <button type="button" id="close-board" class="terminal-button" data-text="close"></button>
         </div>
         <div class="pane__body" id="board-pane-body"></div>
       </section>
     </div>
 
-    <dialog class="confirm-dialog" id="clear-dialog" aria-labelledby="clear-dialog-title">
-      <form method="dialog" class="confirm-dialog__form">
-        <p class="confirm-dialog__title" id="clear-dialog-title" data-text="clearDialogTitle"></p>
+    <dialog class="dialog" id="clear-dialog" aria-labelledby="clear-dialog-title">
+      <form method="dialog" class="dialog__form">
+        <p class="dialog__title" id="clear-dialog-title" data-text="clearDialogTitle"></p>
         <p data-text="clearDialogMessage"></p>
-        <div class="confirm-dialog__actions">
-          <span class="confirm-dialog__hint" data-text="clearDialogHint"></span>
+        <div class="dialog__actions">
+          <span class="dialog__hint" data-text="clearDialogHint"></span>
           <button value="cancel" class="terminal-button" data-text="cancel"></button>
           <button
             value="confirm"
             class="terminal-button terminal-button--accent"
             data-text="clear"
+            autofocus
+          ></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog dialog--about" id="about-dialog" aria-labelledby="about-dialog-title">
+      <form method="dialog" class="dialog__form">
+        <div class="about" id="about-content"></div>
+        <div class="dialog__actions">
+          <button
+            value="close"
+            class="terminal-button terminal-button--accent"
+            data-text="close"
             autofocus
           ></button>
         </div>

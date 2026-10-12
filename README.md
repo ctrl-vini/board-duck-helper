@@ -74,6 +74,8 @@ debugging:
   messages.
 - Hovering over a button shows its shortcut. On this page the shortcuts replace the browser's
   own (jumping to the address bar and printing), which stay available from the browser's menu.
+- `[ sobre ]`, at the right end of the status bar, shows what Duckoder is, the running version,
+  the author and the credits.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
 from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
