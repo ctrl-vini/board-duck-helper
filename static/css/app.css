@@ -49,6 +49,8 @@ body {
 /* Buttons drawn as bracketed terminal actions, inverted on hover like a selected menu item. */
 
 .terminal-button {
+  /* Anchors the shortcut hint. */
+  position: relative;
   min-height: var(--control-height);
   padding: 0 var(--space-2);
   border: 0;
@@ -85,6 +87,46 @@ body {
 .terminal-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* A button's keyboard shortcut, shown below it on hover or keyboard focus. */
+
+.shortcut-hint {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 50%;
+  z-index: 1;
+  display: none;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  background: var(--color-screen);
+  color: var(--color-muted);
+  font-family: inherit;
+  font-size: var(--text-small);
+  font-weight: 400;
+  line-height: 1.4;
+  transform: translateX(-50%);
+}
+
+/* Each key drawn as a rounded keycap. */
+.shortcut-hint__key {
+  padding: 0 0.45em;
+  border: 1px solid var(--color-muted);
+  border-radius: 4px;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.terminal-button:focus-visible .shortcut-hint {
+  display: block;
+}
+
+/* Only where a pointer can hover: on touch screens a tap would leave the hint stuck open. */
+@media (hover: hover) {
+  .terminal-button:hover:not(:disabled) .shortcut-hint {
+    display: block;
+  }
 }
 
 /* Workspace: the scrolling transcript, with the duck in the bottom-right corner. */

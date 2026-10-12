@@ -16,6 +16,7 @@ import { renderPromptText } from "./components/promptText.js";
 import { UI_TEXT, errorMessageFor } from "./ui-text.js";
 import { readConversationId, writeConversationId } from "./utils/conversationUrl.js";
 import { fitToContent } from "./utils/fitToContent.js";
+import { bindShortcuts } from "./utils/shortcuts.js";
 
 const NOT_FOUND_STATUS = 404;
 
@@ -45,6 +46,7 @@ const boardProfiles = new Map();
 
 async function init() {
   applyStaticTexts();
+  bindShortcuts();
   elements.promptLabel.append(renderPromptText());
   renderMotd(elements.motd, useExample);
   duck.speak("listening", UI_TEXT.duck.listening);

@@ -21,7 +21,7 @@ export const UI_TEXT = {
   noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
   requestLabel: "O que a placa deve fazer?",
   send: "enviar",
-  sendHint: "enter envia, shift+enter quebra a linha",
+  sendHint: "enter envia, shift + enter quebra a linha",
   promptUser: "aluno@lab",
   promptPath: "~",
   duckSpeaker: "pato>",

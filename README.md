@@ -60,14 +60,18 @@ debugging:
   refinement that comes back with the same code as the previous version is flagged.
 - The duck talks while its message is typed out, and its face shows whether it is listening,
   thinking, happy or confused. Animations stop when the system asks for reduced motion.
-- `[ ver placa ]`, or typing `pinout` at the prompt, prints the board: a diagram of the header
-  pins with the ones in use highlighted, and a table with each component, its pins and how to
-  wire it. This command runs in the page and is not sent to the model.
+- `[ ver placa ]` (Ctrl + P, or Cmd + P on a Mac), or typing `pinout` at the prompt, prints the
+  board: a diagram of the header pins with the ones in use highlighted, and a table with each
+  component, its pins and how to wire it. This command runs in the page and is not sent to the
+  model.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
-- `[ limpar conversa ]`, or typing a usual clear-screen command (`clear`, `reset`, `cls`,
-  `clear-host` or `clc`), asks for confirmation, where Enter clears and Esc cancels; the next
-  request starts a new conversation, so the model no longer sees the earlier messages.
+- `[ limpar conversa ]` (Ctrl + L or Cmd + L), or typing a usual clear-screen command (`clear`,
+  `reset`, `cls`, `clear-host` or `clc`), asks for confirmation, where Enter clears and Esc
+  cancels; the next request starts a new conversation, so the model no longer sees the earlier
+  messages.
+- Hovering over a button shows its shortcut. On this page the shortcuts replace the browser's
+  own (jumping to the address bar and printing), which stay available from the browser's menu.
 
 It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
 from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
