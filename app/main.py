@@ -13,7 +13,7 @@ from app.services.conversation_service import ConversationService
 from app.services.prompt_builder import PromptBuilder
 
 APP_TITLE = "Duckoder"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 
 
 def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastAPI:
