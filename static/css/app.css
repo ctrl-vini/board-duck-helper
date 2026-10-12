@@ -431,6 +431,36 @@ body {
   margin: 0;
 }
 
+/* One card per component a code version uses: its name, drawing and wiring text. */
+
+.component-cards {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-2) 0;
+}
+
+.component-card {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.component-card__name {
+  margin: 0;
+  color: var(--color-duck);
+  font-weight: 700;
+}
+
+.component-card__drawing {
+  margin: 0;
+  overflow-x: auto;
+  font: inherit;
+  line-height: 1.35;
+}
+
+.component-drawing__gpio {
+  color: var(--color-duck);
+}
+
 /* Tables printed like command output: the wiring guide and the help. */
 
 .terminal-table {

@@ -52,6 +52,17 @@ def test_rejects_unknown_fields(boards_dir: Path, board_profile_data: dict[str, 
         BoardRegistry.from_directory(boards_dir)
 
 
+def test_rejects_unknown_component_kinds(
+    boards_dir: Path, board_profile_data: dict[str, Any]
+) -> None:
+    component = {**board_profile_data["components"][0], "kind": "servo"}
+    profile = {**board_profile_data, "id": "other-board", "components": [component]}
+    (boards_dir / "other-board.json").write_text(json.dumps(profile), encoding="utf-8")
+
+    with pytest.raises(InvalidBoardProfileError, match="kind"):
+        BoardRegistry.from_directory(boards_dir)
+
+
 def test_rejects_components_on_gpios_missing_from_the_pinout(
     boards_dir: Path, board_profile_data: dict[str, Any]
 ) -> None:

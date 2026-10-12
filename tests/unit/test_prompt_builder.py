@@ -45,13 +45,16 @@ def test_shipped_template_fills_every_placeholder(board_profile: BoardProfile) -
 
 def test_wiring_guide_is_left_out_of_the_prompt(board_profile: BoardProfile) -> None:
     pinout = Pinout(left=[HeaderPin(label="D2", gpio=2)], right=[HeaderPin(label="GND")])
-    component = board_profile.components[0].model_copy(update={"wiring": "GPIO 2 to the LED"})
+    component = board_profile.components[0].model_copy(
+        update={"kind": "led", "wiring": "GPIO 2 to the LED"}
+    )
     profile = board_profile.model_copy(update={"pinout": pinout, "components": [component]})
 
     system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
 
     assert "pinout" not in system_message.content
     assert "wiring" not in system_message.content
+    assert "kind" not in system_message.content
     assert '"gpio":2' in system_message.content
 
 

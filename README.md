@@ -64,8 +64,9 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
 - `[ ver ligações ]`, on each version, opens the board with only what that code uses: its pins
-  highlighted, how to wire each of its components, and a warning in red for any pin it uses that
-  has no component wired to it, usually a pin the model made up.
+  highlighted, a drawing of each of its components with the board pin every leg goes to, and a
+  warning in red for any pin it uses that has no component wired to it, usually a pin the model
+  made up.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
   out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
   confused. Animations stop when the system asks for reduced motion.
@@ -146,27 +147,32 @@ message naming the file.
 | `id` | Lowercase letters, digits and hyphens; used in the API paths |
 | `name`, `microcontroller` | Shown to the student and sent to the model |
 | `language`, `framework` | What the generated code must target, such as C++ on Arduino |
-| `components` | What is wired to the board: `name`, `type`, `pins` and an optional `wiring` text |
+| `components` | What is wired to the board: `name`, `type`, `pins`, an optional `wiring` text and an optional `kind` for its drawing |
 | `notes` | Usage restrictions and libraries the model must respect |
 | `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists |
 | `pin_names` | Optional names the board's Arduino core gives to some pins, such as `LED_BUILTIN`, `SDA` and `SCL`, used to find the pins in generated code |
 
 Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`. Each header
 pin has a `label` and, when it is a GPIO, its `gpio` number; a profile whose components use a
-GPIO missing from its pinout is rejected. For example:
+GPIO missing from its pinout is rejected. The `kind` is one of `led`, `button`, `buzzer`,
+`dht22`, `potentiometer`, `oled` and `relay`, each with its own drawing in
+`static/js/components/componentDrawing.js`, whose power legs go to the ESP32 DevKit's `3V3`,
+`GND` and `VIN` pins; a component without a kind, such as a built-in LED, shows only its wiring
+text. For example:
 
 ```json
 {
   "name": "Display OLED",
   "type": "SSD1306 128x64, I2C, endereço 0x3C",
+  "kind": "oled",
   "pins": [{ "gpio": 21, "role": "SDA" }, { "gpio": 22, "role": "SCL" }],
   "wiring": "VCC no 3V3, GND no GND, SDA no GPIO 21 e SCL no GPIO 22."
 }
 ```
 
-The profile is sent to the model as context without `pinout`, `pin_names` and the `wiring`
-texts: those are for the student and for reading the code, and leaving them out keeps the prompt
-shorter. The texts the student reads are in Brazilian Portuguese.
+The profile is sent to the model as context without `pinout`, `pin_names`, the kinds and the
+`wiring` texts: those are for the student and for reading the code, and leaving them out keeps
+the prompt shorter. The texts the student reads are in Brazilian Portuguese.
 
 ## Development checks
 

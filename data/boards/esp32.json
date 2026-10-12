@@ -14,48 +14,56 @@
     {
       "name": "LED verde",
       "type": "saída digital",
+      "kind": "led",
       "pins": [{ "gpio": 25 }],
       "wiring": "GPIO 25 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
     },
     {
       "name": "LED amarelo",
       "type": "saída digital",
+      "kind": "led",
       "pins": [{ "gpio": 26 }],
       "wiring": "GPIO 26 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
     },
     {
       "name": "LED vermelho",
       "type": "saída digital",
+      "kind": "led",
       "pins": [{ "gpio": 27 }],
       "wiring": "GPIO 27 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
     },
     {
       "name": "Botão",
       "type": "entrada digital com pull-up interno",
+      "kind": "button",
       "pins": [{ "gpio": 4 }],
       "wiring": "Um terminal no GPIO 4 e o outro no GND; o pull-up interno dispensa resistor."
     },
     {
       "name": "Buzzer",
       "type": "buzzer passivo, saída PWM",
+      "kind": "buzzer",
       "pins": [{ "gpio": 18 }],
       "wiring": "Positivo (+) no GPIO 18 e negativo (−) no GND."
     },
     {
       "name": "Sensor DHT22",
       "type": "sensor de temperatura e umidade, digital de um fio",
+      "kind": "dht22",
       "pins": [{ "gpio": 15 }],
       "wiring": "VCC no 3V3, DATA no GPIO 15 com resistor de 10 kΩ para o 3V3, GND no GND."
     },
     {
       "name": "Potenciômetro",
       "type": "entrada analógica (ADC de 12 bits, 0 a 4095)",
+      "kind": "potentiometer",
       "pins": [{ "gpio": 34 }],
       "wiring": "Extremidades no 3V3 e no GND; pino do meio no GPIO 34."
     },
     {
       "name": "Display OLED",
       "type": "SSD1306 128x64, I2C, endereço 0x3C",
+      "kind": "oled",
       "pins": [
         { "gpio": 21, "role": "SDA" },
         { "gpio": 22, "role": "SCL" }
@@ -65,6 +73,7 @@
     {
       "name": "Relé",
       "type": "módulo relé, saída digital ativa em nível alto",
+      "kind": "relay",
       "pins": [{ "gpio": 23 }],
       "wiring": "IN no GPIO 23, VCC no VIN (5 V) e GND no GND."
     }

@@ -1,10 +1,13 @@
 """Schemas for board hardware profiles."""
 
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 BOARD_ID_PATTERN = r"^[a-z0-9][a-z0-9-]*$"
+
+# What a component is, so the board view can draw it; one drawing exists for each kind.
+ComponentKind = Literal["led", "button", "buzzer", "dht22", "potentiometer", "oled", "relay"]
 
 
 class ProfileModel(BaseModel):
@@ -25,6 +28,7 @@ class Component(ProfileModel):
 
     name: str = Field(min_length=1)
     type: str = Field(min_length=1)
+    kind: ComponentKind | None = None
     pins: list[ComponentPin] = Field(min_length=1)
     wiring: str | None = None
 

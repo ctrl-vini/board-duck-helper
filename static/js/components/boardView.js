@@ -1,5 +1,6 @@
 import { UI_TEXT } from "../ui-text.js";
 import { createElement } from "../utils/dom.js";
+import { drawComponent } from "./componentDrawing.js";
 
 // "◯" rather than "○", which the bundled font lacks: a glyph from another font may be wider.
 const PIN_HOLE = "◯";
@@ -17,8 +18,8 @@ const NO_USAGE = { note: "", className: null };
 
 /**
  * What the student needs to wire the board: the drawing, the connections and the notes.
- * With wiring ({ version, usage }), only what that code version uses is shown, and the pins it
- * uses that have no component are flagged.
+ * With wiring ({ version, usage }), only what that code version uses is shown, each component
+ * drawn with where its legs go, and the pins it uses that have no component are flagged.
  */
 export function renderBoardView(profile, wiring = null) {
   const components = wiring ? wiring.usage.components : profile.components;
@@ -48,8 +49,10 @@ export function renderBoardView(profile, wiring = null) {
   } else {
     view.append(renderComment(UI_TEXT.noPinout));
   }
-  if (components.length > 0) {
+  if (!wiring) {
     view.append(renderWiringTable(components));
+  } else if (components.length > 0) {
+    view.append(renderComponentCards(components, pinLabeler(profile.pinout)));
   } else {
     view.append(renderComment(UI_TEXT.noComponentsUsed(wiring.version)));
   }
@@ -84,18 +87,46 @@ function renderDiagram(pinout, usage) {
 
   const port = centered(BOARD_PORT_LABEL, BOARD_INNER_WIDTH, "─");
   lines.push([[`${indent}└${port}┘`, null]]);
+  return renderArt(lines, "board-diagram");
+}
 
-  const diagram = createElement("pre", "board-diagram");
-  diagram.setAttribute("aria-hidden", "true");
+/** A text drawing from lines of [text, className] segments; screen readers skip it. */
+function renderArt(lines, className) {
+  const art = createElement("pre", className);
+  art.setAttribute("aria-hidden", "true");
   lines.forEach((segments, index) => {
     if (index > 0) {
-      diagram.append("\n");
+      art.append("\n");
     }
-    for (const [text, className] of segments) {
-      diagram.append(className ? createElement("span", className, text) : text);
+    for (const [text, segmentClass] of segments) {
+      art.append(segmentClass ? createElement("span", segmentClass, text) : text);
     }
   });
-  return diagram;
+  return art;
+}
+
+/** One card per component: its name, its drawing and the wiring text, which screen readers get. */
+function renderComponentCards(components, pinLabel) {
+  const cards = createElement("div", "component-cards");
+  for (const component of components) {
+    const card = createElement("div", "component-card");
+    card.append(createElement("p", "component-card__name", component.name));
+    const drawing = drawComponent(component, pinLabel);
+    if (drawing) {
+      card.append(renderArt(drawing, "component-card__drawing"));
+    }
+    card.append(renderComment(component.wiring ?? component.type));
+    cards.append(card);
+  }
+  return cards;
+}
+
+/** Name GPIOs as printed on the board's header, so the drawings match the board drawing. */
+function pinLabeler(pinout) {
+  const labels = new Map(
+    pinout ? [...pinout.left, ...pinout.right].map((pin) => [pin.gpio, pin.label]) : [],
+  );
+  return (gpio) => labels.get(gpio) ?? UI_TEXT.pinWithRole(gpio);
 }
 
 function leftSide(pin, usage, labelWidth, noteWidth) {
