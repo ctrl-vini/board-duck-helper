@@ -12,8 +12,8 @@ from app.services.board_registry import BoardRegistry
 from app.services.conversation_service import ConversationService
 from app.services.prompt_builder import PromptBuilder
 
-APP_TITLE = "Board Code Assistant"
-APP_VERSION = "0.1.0"
+APP_TITLE = "Duckoder"
+APP_VERSION = "1.0.0"
 
 
 def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastAPI:

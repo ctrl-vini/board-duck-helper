@@ -1,8 +1,10 @@
-# Board Code Assistant
+# Duckoder
 
 Web platform that generates code for teaching boards, starting with the ESP32, using a language
-model that runs locally through [Ollama](https://ollama.com). It works entirely on the local
-network: no internet access or paid service is required while it is in use.
+model that runs locally through [Ollama](https://ollama.com). The student picks a board, explains
+to a rubber duck what the board should do, and gets code ready to paste into the IDE, which can be
+refined in the same conversation. It works entirely on the local network: no internet access or
+paid service is required while it is in use.
 
 ## Requirements
 
@@ -36,7 +38,8 @@ python -m scripts.ask_model "Pisque o LED embutido a cada segundo" --board esp32
 
 It prints the extracted code, the explanation and the timing; add `--raw` to also see the
 unparsed reply. The system prompt lives in `app/prompts/system_prompt.txt`; bump
-`PROMPT_VERSION` in `app/services/prompt_builder.py` whenever it changes.
+`PROMPT_VERSION` in `app/services/prompt_builder.py` whenever it changes, so each saved reply
+records the prompt that produced it.
 
 ## Running
 
@@ -45,16 +48,27 @@ python server.py
 ```
 
 The log shows the address to open from any device on the local network: that page is the
-interface students use. Picking a board and sending a request starts a conversation; its id goes
-into the page address (`/?conversation=<id>`), so reloading or sharing the link reopens it. The
-interactive API documentation is available at `/docs`.
+interface students use. The interactive API documentation is available at `/docs`.
 
-The interface looks like a terminal: requests are typed at a shell prompt (Enter sends,
-Shift+Enter adds a line), each reply prints the code as "versão N" with a copy action, and an
-ASCII rubber duck in the corner reacts to what is happening, as in rubber duck debugging. It is
-plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded from the
-internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font License,
-with ligatures turned off so operators such as `<=` show the exact characters to type.
+## The interface
+
+The page looks like a terminal, with an ASCII rubber duck in the corner, as in rubber duck
+debugging:
+
+- Requests are typed at a shell prompt: Enter sends, Shift+Enter adds a line.
+- Each reply prints the code as "versão N" with a copy action and the model's explanation. A
+  refinement that comes back with the same code as an earlier version is flagged.
+- The duck talks while its message is typed out, and its face shows whether it is listening,
+  thinking, happy or confused. Animations stop when the system asks for reduced motion.
+- `[ ver placa ]`, or typing `pinout` at the prompt, prints the board: a diagram of the header
+  pins with the ones in use highlighted, and a table with each component, its pins and how to
+  wire it. This command runs in the page and is not sent to the model.
+- Picking a board and sending a request starts a conversation; its id goes into the page address
+  (`/?conversation=<id>`), so reloading or sharing the link reopens it.
+
+It is plain HTML, CSS and JavaScript modules in `static/`, with no build step and nothing loaded
+from the internet. The JetBrains Mono font is bundled in `static/fonts/` under the SIL Open Font
+License, with ligatures turned off so operators such as `<=` show the exact characters to type.
 
 ## Configuration
 
@@ -79,6 +93,7 @@ Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
 | Method | Path | Body | Response |
 | --- | --- | --- | --- |
 | GET | `/boards` | — | `200` boards with `id`, `name`, `microcontroller` |
+| GET | `/boards/{id}` | — | `200` the full board profile, with components, wiring and pinout |
 | POST | `/conversations` | `{"board_id"}` | `201` the new, empty conversation |
 | POST | `/conversations/{id}/messages` | `{"content"}` | `201` the model's reply, with `code`, `explanation` and `metrics` |
 | GET | `/conversations/{id}` | — | `200` the conversation with every message |
@@ -89,11 +104,35 @@ simply send the message again. Try every route from `/docs`.
 
 ## Adding a board
 
-Each board is described by one JSON file in `data/boards/`: its microcontroller, target language
-and framework, the components wired to it with their pins, and notes on usage restrictions. This
-profile is sent to the model as context; the API only exposes the board's id, name and
-microcontroller. To add a board, copy `esp32.json`, give it a new `id` and restart the server.
-Invalid files stop the server at startup with a message naming the file.
+Each board is described by one JSON file in `data/boards/`. To add a board, copy `esp32.json`,
+give it a new `id` and restart the server. Invalid files stop the server at startup with a
+message naming the file.
+
+| Field | Content |
+| --- | --- |
+| `id` | Lowercase letters, digits and hyphens; used in the API paths |
+| `name`, `microcontroller` | Shown to the student and sent to the model |
+| `language`, `framework` | What the generated code must target, such as C++ on Arduino |
+| `components` | What is wired to the board: `name`, `type`, `pins` and an optional `wiring` text |
+| `notes` | Usage restrictions and libraries the model must respect |
+| `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists |
+
+Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`. Each header
+pin has a `label` and, when it is a GPIO, its `gpio` number; a profile whose components use a
+GPIO missing from its pinout is rejected. For example:
+
+```json
+{
+  "name": "Display OLED",
+  "type": "SSD1306 128x64, I2C, endereço 0x3C",
+  "pins": [{ "gpio": 21, "role": "SDA" }, { "gpio": 22, "role": "SCL" }],
+  "wiring": "VCC no 3V3, GND no GND, SDA no GPIO 21 e SCL no GPIO 22."
+}
+```
+
+The profile is sent to the model as context without `pinout` and the `wiring` texts: those are
+for the student, and leaving them out keeps the prompt shorter. The texts the student reads are
+in Brazilian Portuguese.
 
 ## Development checks
 
@@ -104,3 +143,32 @@ ruff check .
 ruff format --check .
 pytest
 ```
+
+The tests replace Ollama with a fake model, so they need neither Ollama nor a network.
+
+## Continuous integration and releases
+
+- `.github/workflows/ci.yml` runs the development checks on Python 3.11 and 3.12 for every pull
+  request and every push to `master`.
+- `.github/workflows/release.yml` runs when a version tag is pushed. It runs the same checks,
+  confirms that the tag matches `APP_VERSION` in `app/main.py`, and publishes a GitHub release
+  with generated notes and a `duckoder-<tag>.zip` archive of the source.
+
+To publish a version, update `APP_VERSION`, commit, then tag and push:
+
+```bash
+git tag v1.0.0
+git push origin master --tags
+```
+
+## Manual end-to-end check
+
+With Ollama and the server running, from another device on the same network:
+
+1. Open the address from the server log; the board list loads.
+2. Run `pinout`: the diagram and the wiring table appear.
+3. Send "Pisque o LED embutido a cada segundo"; the code appears as "versão 1".
+4. Ask for a change, such as "Tire os comentários do código"; "versão 2" applies it.
+5. Reload the page; the conversation comes back from the address.
+6. Copy the code; it pastes intact into the Arduino IDE.
+7. Stop Ollama and send a request; a readable error appears and the duck looks confused.
