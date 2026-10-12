@@ -52,14 +52,14 @@ interface students use. The interactive API documentation is available at `/docs
 
 ## The interface
 
-The page looks like a terminal, with an ASCII rubber duck in the corner, as in rubber duck
-debugging:
+The page looks like a terminal, with a rubber duck in the corner, as in rubber duck debugging:
 
 - Requests are typed at a shell prompt: Enter sends, Shift+Enter adds a line.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
-- The duck talks while its message is typed out, and its face shows whether it is listening,
-  thinking, happy or confused. Animations stop when the system asks for reduced motion.
+- The duck, drawn in braille characters, opens and closes its beak while its message is typed
+  out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
+  confused. Animations stop when the system asks for reduced motion.
 - `[ ver placa ]` (Ctrl + P, or Cmd + P on a Mac), or typing `pinout` at the prompt, opens the
   board in a pane beside the conversation, like a split terminal: a diagram of the header pins
   with the ones in use highlighted, and a table with each component, its pins and how to wire
