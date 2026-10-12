@@ -99,9 +99,12 @@ function renderDiagram(pinout, pinNote) {
   for (let row = 0; row < rowCount; row += 1) {
     const middle =
       row === chipRow ? centered(pinout.label ?? "") : " ".repeat(BOARD_INNER_WIDTH - 2);
+    // A shorter header row leaves the board edge plain, with no hole.
+    const leftEdge = pinout.left[row] ? `┤${PIN_HOLE}` : "│ ";
+    const rightEdge = pinout.right[row] ? `${PIN_HOLE}├` : " │";
     lines.push([
       ...leftSide(pinout.left[row], pinNote, labelWidth, leftNoteWidth),
-      [`┤${PIN_HOLE}${middle}${PIN_HOLE}├`, null],
+      [`${leftEdge}${middle}${rightEdge}`, null],
       ...rightSide(pinout.right[row], pinNote, labelWidth),
     ]);
   }
