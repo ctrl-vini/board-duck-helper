@@ -114,7 +114,27 @@ export const UI_TEXT = {
   duckSpeaker: "pato>",
   errorLabel: "erro:",
   commentPrefix: "#",
-  thinking: "pensando no código",
+  pendingReply: {
+    // Shown in order while the model writes, one every few seconds.
+    steps: [
+      "lendo o seu pedido",
+      "consultando o perfil da placa",
+      "escolhendo os pinos",
+      "escrevendo o setup()",
+      "escrevendo o loop()",
+      "conferindo as ligações",
+      "revisando o código",
+      "preparando a explicação",
+    ],
+    // Then, for long generations, one of these at random.
+    stillWaiting: [
+      "ainda pensando no código",
+      "o modelo está caprichando",
+      "quase lá",
+      "só mais um pouquinho",
+      "contando os pinos de novo",
+    ],
+  },
   copy: "copiar",
   copied: "copiado",
   copyFailed: "selecione e copie",
@@ -138,7 +158,14 @@ export const UI_TEXT = {
   },
   duck: {
     listening: "Quack! Me explica o que a placa deve fazer.",
-    thinking: "Hmm, deixa eu pensar",
+    thinking: [
+      "Hmm, deixa eu pensar",
+      "Quack... pensando",
+      "Deixa eu olhar os pinos",
+      "Um momento, estou montando o código",
+      "Boa! Já estou escrevendo",
+      "Pensando com todas as penas",
+    ],
     happy: (version) => `Pronto! A versão ${version} está no terminal.`,
     noCode: "Não saiu código desta vez. Tenta explicar de outro jeito?",
     unchanged: (version) =>

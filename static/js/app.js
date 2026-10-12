@@ -19,6 +19,7 @@ import { UI_TEXT, errorMessageFor } from "./ui-text.js";
 import { readConversationId, writeConversationId } from "./utils/conversationUrl.js";
 import { fitToContent } from "./utils/fitToContent.js";
 import { playQuack } from "./utils/quackSound.js";
+import { pickAtRandom } from "./utils/random.js";
 import { bindShortcuts } from "./utils/shortcuts.js";
 
 const NOT_FOUND_STATUS = 404;
@@ -156,7 +157,7 @@ async function handleSubmit(event) {
 
   clearErrors();
   lockControls(true);
-  duck.speak("thinking", UI_TEXT.duck.thinking);
+  duck.speak("thinking", pickAtRandom(UI_TEXT.duck.thinking));
   const command = appendToTranscript(renderCommandLine(content));
   const pending = appendToTranscript(renderPendingReply());
   setRequestText("");
@@ -209,8 +210,7 @@ function showHelp(typedCommand) {
 
 function quack() {
   playQuack();
-  const { quacks } = UI_TEXT.duck;
-  duck.speak("happy", quacks[Math.floor(Math.random() * quacks.length)]);
+  duck.speak("happy", pickAtRandom(UI_TEXT.duck.quacks));
 }
 
 /** Open the board pane on the latest code version, or on the whole board before any code. */

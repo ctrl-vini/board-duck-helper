@@ -60,7 +60,8 @@ interface students use. The interactive API documentation is available at `/docs
 
 The page looks like a terminal, with a rubber duck in the corner, as in rubber duck debugging:
 
-- Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line.
+- Requests are typed at a shell prompt: Enter sends, Shift + Enter adds a line. While the model
+  works, the waiting line moves on every few seconds through the steps of writing a sketch.
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
 - `[ ver ligações ]`, on each version, opens the board with only what that code uses: its pins
@@ -69,7 +70,8 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
   that has no component wired to it, usually a pin the model made up.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
   out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
-  confused. Animations stop when the system asks for reduced motion.
+  confused. Its messages vary from one request to the next. Animations stop when the system asks
+  for reduced motion.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
 

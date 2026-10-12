@@ -1,8 +1,11 @@
 import { UI_TEXT } from "../ui-text.js";
 import { createElement } from "../utils/dom.js";
 import { formatDuration } from "../utils/format.js";
+import { pickAtRandom } from "../utils/random.js";
 import { renderCodeBlock } from "./codeBlock.js";
 import { renderPromptText } from "./promptText.js";
+
+const PENDING_STEP_INTERVAL_MS = 3000;
 
 /** A student's request, shown as a command typed at the prompt. */
 export function renderCommandLine(content) {
@@ -38,14 +41,30 @@ export function renderReply(message, codeVersion, onShowWiring) {
   return line;
 }
 
-/** Placeholder shown while the model is generating. */
+/**
+ * Placeholder shown while the model is generating. Its text moves on every few seconds, through
+ * the steps of writing a sketch and then through patient remarks, until the line is removed.
+ */
 export function renderPendingReply() {
+  const { steps, stillWaiting } = UI_TEXT.pendingReply;
+  const status = createElement("span", null, steps[0]);
   const line = createElement("li", "line line--pending");
   line.append(
     createElement("span", "speaker", UI_TEXT.duckSpeaker),
-    ` ${UI_TEXT.thinking}`,
+    " ",
+    status,
     createElement("span", "thinking-dots"),
   );
+
+  let step = 0;
+  const timer = window.setInterval(() => {
+    if (!line.isConnected) {
+      window.clearInterval(timer);
+      return;
+    }
+    step += 1;
+    status.textContent = step < steps.length ? steps[step] : pickAtRandom(stillWaiting);
+  }, PENDING_STEP_INTERVAL_MS);
   return line;
 }
 
