@@ -64,9 +64,9 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
 - Each reply prints the code as "versão N" with a copy action and the model's explanation. A
   refinement that comes back with the same code as the previous version is flagged.
 - `[ ver ligações ]`, on each version, opens the board with only what that code uses: its pins
-  highlighted, a drawing of each of its components with the board pin every leg goes to, and a
-  warning in red for any pin it uses that has no component wired to it, usually a pin the model
-  made up.
+  highlighted, a drawing of each of its components with the board pin every leg goes to, a notice
+  in orange when it moved a component to another pin, and a warning in red for any pin it uses
+  that has no component wired to it, usually a pin the model made up.
 - The duck, drawn in braille characters, opens and closes its beak while its message is typed
   out, blinks from time to time, and its eye shows whether it is listening, thinking, happy or
   confused. Animations stop when the system asks for reduced motion.
@@ -121,7 +121,7 @@ Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
 | POST | `/conversations` | `{"board_id"}` | `201` the new, empty conversation |
 | POST | `/conversations/{id}/messages` | `{"content"}` | `201` the model's reply, with `code`, `explanation` and `metrics` |
 | GET | `/conversations/{id}` | — | `200` the conversation with every message |
-| GET | `/conversations/{id}/messages/{message_id}/pin-usage` | — | `200` the board `components` the message's code uses, and the `unlisted_gpios` it uses with no component |
+| GET | `/conversations/{id}/messages/{message_id}/pin-usage` | — | `200` the board `components` the message's code uses, wired as it needs them, the `moved_pins` and the `unlisted_gpios` it uses with no component |
 | GET | `/version` | — | `200` the application's `name` and `version` |
 
 Errors use `{"detail": "..."}`: `404` for an unknown board, conversation or message, `422` for an
@@ -135,6 +135,12 @@ resolved. The prompt asks the model to declare each pin as a named constant, whi
 reliable; the board's own pin names and the default I2C pins come from its profile. Pins
 computed while the code runs are not found. The usage is computed on every request, so it always
 matches the current profile.
+
+A component can move: asked to use another pin because one is broken, the model keeps the
+constant and changes its number. The earlier versions of the conversation tell which component a
+constant stands for, so the board view shows that component on its new pin, with its wiring text
+updated and a notice to move the wire; the profile's notes list the free pins the model should
+pick.
 
 ## Adding a board
 

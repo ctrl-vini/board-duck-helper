@@ -60,16 +60,24 @@ class ConversationService:
         return reply
 
     def get_pin_usage(self, conversation_id: str, message_id: str) -> PinUsage:
-        """Return which of the board's components the code of one message uses."""
+        """Return which of the board's components the code of one message uses, and where.
+
+        The earlier versions of the code tell which component a constant stands for, so one the
+        student asked to move to another pin is still recognized.
+        """
         conversation = self._conversations.get(conversation_id)
-        message = _find_message(conversation, message_id)
-        return detect_pin_usage(message.code, self._boards.get_board(conversation.board_id))
+        position = _position_of(conversation, message_id)
+        earlier_codes = [
+            message.code for message in conversation.messages[:position] if message.code
+        ]
+        profile = self._boards.get_board(conversation.board_id)
+        return detect_pin_usage(conversation.messages[position].code, profile, earlier_codes)
 
 
-def _find_message(conversation: Conversation, message_id: str) -> Message:
-    for message in conversation.messages:
+def _position_of(conversation: Conversation, message_id: str) -> int:
+    for position, message in enumerate(conversation.messages):
         if message.id == message_id:
-            return message
+            return position
     raise MessageNotFoundError(message_id)
 
 

@@ -19,11 +19,13 @@ const NO_USAGE = { note: "", className: null };
 /**
  * What the student needs to wire the board: the drawing, the connections and the notes.
  * With wiring ({ version, usage }), only what that code version uses is shown, each component
- * drawn with where its legs go, and the pins it uses that have no component are flagged.
+ * drawn with where its legs go; pins the code moved and pins it uses with no component are flagged.
  */
 export function renderBoardView(profile, wiring = null) {
   const components = wiring ? wiring.usage.components : profile.components;
+  const movedPins = wiring ? wiring.usage.moved_pins : [];
   const unlistedGpios = wiring ? wiring.usage.unlisted_gpios : [];
+  const pinLabel = pinLabeler(profile.pinout);
 
   const view = createElement("div", "board-view");
   view.append(createElement("p", "board-view__title", profile.name));
@@ -33,6 +35,11 @@ export function renderBoardView(profile, wiring = null) {
   }
   if (wiring) {
     view.append(renderComment(UI_TEXT.wiringOfVersion(wiring.version)));
+  }
+  for (const { component, role, from_gpio: fromGpio, to_gpio: toGpio } of movedPins) {
+    const name = UI_TEXT.usageWithRole(component, role);
+    const notice = UI_TEXT.movedPin(name, fromGpio, toGpio, pinLabel(toGpio));
+    view.append(createElement("p", "board-view__notice", `${UI_TEXT.commentPrefix} ${notice}`));
   }
   if (unlistedGpios.length > 0) {
     view.append(
@@ -55,7 +62,7 @@ export function renderBoardView(profile, wiring = null) {
   if (!wiring) {
     view.append(renderWiringTable(components));
   } else if (components.length > 0) {
-    view.append(renderComponentCards(components, pinLabeler(profile.pinout)));
+    view.append(renderComponentCards(components, pinLabel));
   } else {
     view.append(renderComment(UI_TEXT.noComponentsUsed(wiring.version)));
   }

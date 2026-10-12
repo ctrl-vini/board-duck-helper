@@ -3,13 +3,18 @@
 The prompt asks the model to declare each pin as a named constant and to use only the pins of
 the profile, so reading the pin arguments of the usual calls is enough. Names the board's core
 predefines (LED_BUILTIN, SDA, SCL) come from the profile; pins computed at run time are not found.
+
+A component can still move: asked to "use outro pino, esse está quebrado", the model keeps the
+constant and changes its number. So a constant that pointed at a component in an earlier version
+keeps naming that component, now on its new GPIO.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
-from app.schemas.board import BoardProfile
-from app.schemas.pin_usage import PinUsage
+from app.schemas.board import BoardProfile, Component
+from app.schemas.pin_usage import PinMove, PinUsage
 
 # Comments and string literals may mention pins ("LED no GPIO 4") without using them.
 COMMENT_OR_STRING = re.compile(
@@ -75,19 +80,62 @@ I2C_BUS = re.compile(r"\bWire\b")
 I2C_PINS_GIVEN = re.compile(r"\bWire\.begin\s*\(\s*[^\s)]")
 DEFAULT_I2C_PIN_NAMES = ("SDA", "SCL")
 CAST_PREFIX = re.compile(r"^\(\s*\w+\s*\)\s*")
-NAME_OR_ELEMENT = re.compile(r"(?P<name>[A-Za-z_]\w*)(?:\s*\[.*\])?")
+NAME_OR_ELEMENT = re.compile(r"(?P<name>[A-Za-z_]\w*)(?P<element>\s*\[.*\])?")
+# How wiring texts refer to a pin, so a moved pin can be renamed in them.
+GPIO_MENTION = re.compile(r"\bGPIO (\d+)\b")
+
+# A component pin of the profile: (index of the component, index of the pin).
+Slot = tuple[int, int]
 
 
-def detect_pin_usage(code: str | None, profile: BoardProfile) -> PinUsage:
-    """Return the profile's components the code drives and the GPIOs it uses outside them."""
-    gpios = find_gpios(code or "", profile.pin_names)
-    wired = {pin.gpio for component in profile.components for pin in component.pins}
-    components = [
-        component
-        for component in profile.components
-        if any(pin.gpio in gpios for pin in component.pins)
-    ]
-    return PinUsage(components=components, unlisted_gpios=sorted(gpios - wired))
+@dataclass(frozen=True)
+class PinUse:
+    """A GPIO the code passes as a pin, and the constant it came from when it has one value."""
+
+    gpio: int
+    name: str | None = None
+
+
+@dataclass(frozen=True)
+class Placement:
+    """Where one code version puts the profile's component pins, and the GPIOs left over."""
+
+    gpio_by_slot: dict[Slot, int]
+    slot_by_name: dict[str, Slot]
+    unlisted_gpios: set[int]
+
+
+def detect_pin_usage(
+    code: str | None, profile: BoardProfile, earlier_codes: Sequence[str] = ()
+) -> PinUsage:
+    """Return the profile's components the code drives, wired as the code needs them.
+
+    earlier_codes are the previous versions of the conversation, oldest first: a constant that
+    named a component there still names it when the code gives it another GPIO. GPIOs that no
+    component explains are listed apart.
+    """
+    slot_by_name: dict[str, Slot] = {}
+    for earlier_code in earlier_codes:
+        slot_by_name = _place(earlier_code, profile, slot_by_name).slot_by_name
+    placement = _place(code or "", profile, slot_by_name)
+
+    components: list[Component] = []
+    moves: list[PinMove] = []
+    for component_index, component in enumerate(profile.components):
+        gpio_by_pin = {
+            pin_index: gpio
+            for (index, pin_index), gpio in placement.gpio_by_slot.items()
+            if index == component_index
+        }
+        if gpio_by_pin:
+            moved = _move_pins(component, gpio_by_pin)
+            components.append(moved)
+            moves += _moves_between(component, moved)
+    return PinUsage(
+        components=components,
+        moved_pins=moves,
+        unlisted_gpios=sorted(placement.unlisted_gpios),
+    )
 
 
 def find_gpios(code: str, pin_names: Mapping[str, int] | None = None) -> set[int]:
@@ -95,13 +143,68 @@ def find_gpios(code: str, pin_names: Mapping[str, int] | None = None) -> set[int
 
     pin_names are the board's predefined pin names; the code's own constants take precedence.
     """
+    return {use.gpio for use in _pin_uses(code, pin_names)}
+
+
+def _place(code: str, profile: BoardProfile, known_names: Mapping[str, Slot]) -> Placement:
+    """Match each pin the code uses to a component pin: by its constant, then by its GPIO."""
+    slot_by_gpio = {
+        pin.gpio: (component_index, pin_index)
+        for component_index, component in enumerate(profile.components)
+        for pin_index, pin in enumerate(component.pins)
+    }
+    gpio_by_slot: dict[Slot, int] = {}
+    slot_by_name = dict(known_names)
+    unlisted_gpios: set[int] = set()
+    for use in _pin_uses(code, profile.pin_names):
+        slot = known_names.get(use.name) if use.name else None
+        if slot is None:
+            slot = slot_by_gpio.get(use.gpio)
+        if slot is None:
+            unlisted_gpios.add(use.gpio)
+            continue
+        gpio_by_slot[slot] = use.gpio
+        if use.name:
+            slot_by_name[use.name] = slot
+    return Placement(gpio_by_slot, slot_by_name, unlisted_gpios)
+
+
+def _move_pins(component: Component, gpio_by_pin: Mapping[int, int]) -> Component:
+    """The component wired to the GPIOs the code uses, with its wiring text to match."""
+    pins = [
+        pin.model_copy(update={"gpio": gpio_by_pin.get(index, pin.gpio)})
+        for index, pin in enumerate(component.pins)
+    ]
+    new_gpio_by_old = {
+        old.gpio: new.gpio for old, new in zip(component.pins, pins, strict=True) if old != new
+    }
+    wiring = component.wiring
+    if wiring and new_gpio_by_old:
+        # One pass, so two pins that trade places are both renamed correctly.
+        wiring = GPIO_MENTION.sub(
+            lambda match: f"GPIO {new_gpio_by_old.get(int(match.group(1)), match.group(1))}",
+            wiring,
+        )
+    return component.model_copy(update={"pins": pins, "wiring": wiring})
+
+
+def _moves_between(original: Component, moved: Component) -> list[PinMove]:
+    return [
+        PinMove(component=original.name, role=old.role, from_gpio=old.gpio, to_gpio=new.gpio)
+        for old, new in zip(original.pins, moved.pins, strict=True)
+        if old.gpio != new.gpio
+    ]
+
+
+def _pin_uses(code: str, pin_names: Mapping[str, int] | None) -> list[PinUse]:
+    """Every pin argument of the code, resolved to GPIOs, in the order the code passes them."""
     source = COMMENT_OR_STRING.sub(" ", code)
     constants = {name: {gpio} for name, gpio in (pin_names or {}).items()}
     constants.update(_find_constants(source))
-    gpios: set[int] = set()
+    uses: list[PinUse] = []
     if I2C_BUS.search(source) and not I2C_PINS_GIVEN.search(source):
         for name in DEFAULT_I2C_PIN_NAMES:
-            gpios |= constants.get(name, set())
+            uses += [PinUse(gpio, name) for gpio in constants.get(name, set())]
     for pattern, positions_by_callee in (
         (FUNCTION_CALL, PIN_ARGUMENTS_BY_FUNCTION),
         (CONSTRUCTOR_CALL, PIN_ARGUMENTS_BY_CONSTRUCTOR),
@@ -110,8 +213,8 @@ def find_gpios(code: str, pin_names: Mapping[str, int] | None = None) -> set[int
             arguments = _call_arguments(source, match.end())
             for position in positions_by_callee[match.group("callee")]:
                 if position < len(arguments):
-                    gpios |= _resolve(arguments[position], constants)
-    return gpios
+                    uses += _resolve(arguments[position], constants)
+    return uses
 
 
 def _find_constants(source: str) -> dict[str, set[int]]:
@@ -148,15 +251,18 @@ def _call_arguments(source: str, start: int) -> list[str]:
     return arguments
 
 
-def _resolve(argument: str, constants: dict[str, set[int]]) -> set[int]:
+def _resolve(argument: str, constants: dict[str, set[int]]) -> list[PinUse]:
     """Turn a pin argument into GPIO numbers: a literal, a named constant or an array element."""
     expression = CAST_PREFIX.sub("", argument)
     if re.fullmatch(PIN_VALUE, expression):
-        return {_pin_number(expression)}
+        return [PinUse(_pin_number(expression))]
     match = NAME_OR_ELEMENT.fullmatch(expression)
     if match is None:
-        return set()
-    return constants.get(match.group("name"), set())
+        return []
+    values = constants.get(match.group("name"), set())
+    # Only a constant with a single value stands for one component; an array holds several.
+    name = match.group("name") if len(values) == 1 and match.group("element") is None else None
+    return [PinUse(gpio, name) for gpio in sorted(values)]
 
 
 def _pin_number(value: str) -> int:

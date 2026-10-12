@@ -260,6 +260,8 @@ function speakAboutBoard(wiring) {
     duck.speak("happy", UI_TEXT.duck.board);
   } else if (wiring.usage.unlisted_gpios.length > 0) {
     duck.speak("confused", UI_TEXT.duck.unlistedGpios(wiring.version, wiring.usage.unlisted_gpios));
+  } else if (wiring.usage.moved_pins.length > 0) {
+    duck.speak("happy", UI_TEXT.duck.movedPins(wiring.version, wiring.usage.moved_pins.length));
   } else if (wiring.usage.components.length === 0) {
     duck.speak("happy", UI_TEXT.duck.noComponents(wiring.version));
   } else {

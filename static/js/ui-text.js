@@ -76,6 +76,8 @@ export const UI_TEXT = {
   unlistedGpios: (gpios) =>
     `atenção: o código usa ${gpioList(gpios)}, mas não há componente ligado ${gpios.length === 1 ? "nele" : "neles"}`,
   unlistedPinNote: "sem componente",
+  movedPin: (component, fromGpio, toGpio, pinLabel) =>
+    `${component} mudou do GPIO ${fromGpio} para o GPIO ${toGpio}: ligue o fio no ${pinLabel}`,
   componentDrawing: {
     labels: {
       led: "LED",
@@ -146,6 +148,10 @@ export const UI_TEXT = {
     wiring: (version) =>
       `Essas são as ligações da versão ${version}. Os pinos em amarelo são os que o código usa.`,
     noComponents: (version) => `A versão ${version} não usa nenhum componente da placa.`,
+    movedPins: (version, count) =>
+      count === 1
+        ? `Na versão ${version}, um componente mudou de pino. Muda o fio de lugar também!`
+        : `Na versão ${version}, alguns componentes mudaram de pino. Muda os fios de lugar também!`,
     unlistedGpios: (version, gpios) =>
       `Hmm, a versão ${version} usa ${gpioList(gpios)}, e não tem nada ligado ${gpios.length === 1 ? "nele" : "neles"}.`,
     help: "Esses são os comandos que eu entendo.",

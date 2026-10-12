@@ -431,6 +431,12 @@ body {
   margin: 0;
 }
 
+/* A component the code moved to another pin, as the student asked: the wire has to move too. */
+.board-view__notice {
+  margin: 0;
+  color: var(--color-beak);
+}
+
 /* One card per component a code version uses: its name, drawing and wiring text. */
 
 .component-cards {

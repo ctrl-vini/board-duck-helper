@@ -98,3 +98,24 @@ def test_pin_usage_rejects_unknown_messages(service: ConversationService) -> Non
 
     with pytest.raises(MessageNotFoundError):
         service.get_pin_usage(conversation.id, "0" * 32)
+
+
+def test_pin_usage_follows_a_pin_moved_in_a_later_version(
+    service: ConversationService, llm_client: FakeLlmClient
+) -> None:
+    conversation = service.start("test-board")
+    llm_client.reply = (
+        "```cpp\nconst int LED_PIN = 2;\nvoid setup() { pinMode(LED_PIN, OUTPUT); }\n```"
+    )
+    service.send_message(conversation.id, "Pisque o LED")
+    llm_client.reply = (
+        "```cpp\nconst int LED_PIN = 13;\nvoid setup() { pinMode(LED_PIN, OUTPUT); }\n```"
+    )
+    reply = service.send_message(conversation.id, "Use outro pino, esse está quebrado")
+
+    usage = service.get_pin_usage(conversation.id, reply.id)
+
+    assert [(component.name, component.pins[0].gpio) for component in usage.components] == [
+        ("LED", 13)
+    ]
+    assert usage.unlisted_gpios == []

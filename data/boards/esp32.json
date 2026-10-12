@@ -83,6 +83,7 @@
   "notes": [
     "Os GPIO 34 a 39 são somente entrada e não têm pull-up nem pull-down internos.",
     "Os pinos do ADC2 não leem valores analógicos com o WiFi ligado; entradas analógicas usam pinos do ADC1 (GPIO 32 a 39).",
+    "Se o estudante pedir para trocar um componente de pino, mantenha o nome da constante e use um pino livre: GPIO 13, 16, 17, 19, 32 ou 33. Evite os GPIO 5, 12, 14 e 15, que definem o modo de boot ou mudam de estado ao ligar a placa.",
     "Use as bibliotecas Adafruit SSD1306 e Adafruit GFX para o display.",
     "Use a biblioteca DHT sensor library, da Adafruit, para o DHT22: crie o sensor com DHT dht(pino, DHT22), e readTemperature() já devolve graus Celsius.",
     "Para PWM, use analogWrite(pino, valor); para o buzzer, tone(pino, frequência) e noTone(pino). Não use ledcSetup nem ledcAttachPin, que não existem no núcleo ESP32 3.x.",
