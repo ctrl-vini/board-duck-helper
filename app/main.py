@@ -20,7 +20,7 @@ def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastA
     """Create the application; pass llm_client to replace the Ollama model, as tests do."""
     app = FastAPI(title=APP_TITLE, version=APP_VERSION)
 
-    board_registry = BoardRegistry.from_directory(settings.boards_dir)
+    board_registry = BoardRegistry.from_directory(settings.boards_dir, settings.default_board_id)
     app.state.board_registry = board_registry
     app.state.conversation_service = ConversationService(
         boards=board_registry,

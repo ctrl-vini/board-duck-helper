@@ -17,12 +17,18 @@ logger = logging.getLogger(__name__)
 class BoardRegistry:
     """Read-only catalog of board profiles, indexed by board id."""
 
-    def __init__(self, profiles: dict[str, BoardProfile]) -> None:
+    def __init__(
+        self, profiles: dict[str, BoardProfile], default_board_id: str | None = None
+    ) -> None:
         self._profiles = profiles
+        self._default_board_id = default_board_id
 
     @classmethod
-    def from_directory(cls, directory: Path) -> Self:
-        """Load every profile file in the directory, failing on the first invalid one."""
+    def from_directory(cls, directory: Path, default_board_id: str | None = None) -> Self:
+        """Load every profile file in the directory, failing on the first invalid one.
+
+        The default board comes first in the list, so the interface starts with it selected.
+        """
         profiles: dict[str, BoardProfile] = {}
         for path in sorted(directory.glob(PROFILE_FILE_PATTERN)):
             profile = _read_profile(path)
@@ -34,11 +40,16 @@ class BoardRegistry:
             logger.info("Loaded %d board profile(s) from %s", len(profiles), directory)
         else:
             logger.warning("No board profiles found in %s", directory)
-        return cls(profiles)
+        if profiles and default_board_id and default_board_id not in profiles:
+            logger.warning("Default board '%s' has no profile; listing by name", default_board_id)
+        return cls(profiles, default_board_id)
 
     def list_boards(self) -> list[BoardProfile]:
-        """Return every profile, sorted by display name."""
-        return sorted(self._profiles.values(), key=lambda profile: profile.name)
+        """Return every profile: the default board first, then the others by display name."""
+        return sorted(
+            self._profiles.values(),
+            key=lambda profile: (profile.id != self._default_board_id, profile.name),
+        )
 
     def get_board(self, board_id: str) -> BoardProfile:
         """Return the profile with the given id, or raise BoardNotFoundError."""

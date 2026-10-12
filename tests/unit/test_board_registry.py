@@ -91,6 +91,19 @@ def test_rejects_supply_pins_missing_from_the_pinout(
         BoardRegistry.from_directory(boards_dir)
 
 
+def test_lists_the_default_board_first(
+    boards_dir: Path, board_profile_data: dict[str, Any]
+) -> None:
+    later = {**board_profile_data, "id": "zeta-board", "name": "Zeta Board"}
+    (boards_dir / "zeta-board.json").write_text(json.dumps(later), encoding="utf-8")
+
+    by_name = BoardRegistry.from_directory(boards_dir)
+    with_default = BoardRegistry.from_directory(boards_dir, default_board_id="zeta-board")
+
+    assert [board.id for board in by_name.list_boards()] == ["test-board", "zeta-board"]
+    assert [board.id for board in with_default.list_boards()] == ["zeta-board", "test-board"]
+
+
 def test_rejects_duplicate_board_ids(boards_dir: Path, board_profile_data: dict[str, Any]) -> None:
     (boards_dir / "copy.json").write_text(json.dumps(board_profile_data), encoding="utf-8")
 
