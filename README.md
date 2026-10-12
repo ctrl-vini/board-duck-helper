@@ -28,11 +28,15 @@ ollama run qwen2.5-coder:7b --verbose "Write an Arduino sketch for the ESP32 tha
 
 `--verbose` prints the load time and the generation speed after the answer.
 
-To send a prompt through the platform's own client, with the configured model and options:
+To try a request through the platform's own prompt, board profile and model settings:
 
 ```bash
-python -m scripts.ask_model "Write an Arduino sketch for the ESP32 that blinks the built-in LED on GPIO 2."
+python -m scripts.ask_model "Pisque o LED embutido a cada segundo" --board esp32
 ```
+
+It prints the extracted code, the explanation and the timing; add `--raw` to also see the
+unparsed reply. The system prompt lives in `app/prompts/system_prompt.txt`; bump
+`PROMPT_VERSION` in `app/services/prompt_builder.py` whenever it changes.
 
 ## Running
 

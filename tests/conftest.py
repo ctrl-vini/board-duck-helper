@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings, load_settings
 from app.main import create_app
+from app.schemas.board import BoardProfile
 
 
 @pytest.fixture
@@ -24,6 +25,12 @@ def board_profile_data() -> dict[str, Any]:
         "components": [{"name": "LED", "type": "digital output", "pin": "GPIO 2"}],
         "notes": ["Example note"],
     }
+
+
+@pytest.fixture
+def board_profile(board_profile_data: dict[str, Any]) -> BoardProfile:
+    """The sample profile as a validated model."""
+    return BoardProfile.model_validate(board_profile_data)
 
 
 @pytest.fixture
