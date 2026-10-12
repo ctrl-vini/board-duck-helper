@@ -1,11 +1,11 @@
 import { UI_TEXT } from "../ui-text.js";
 import { createElement } from "../utils/dom.js";
+import { createPinNames } from "../utils/pinNames.js";
 import { drawComponent } from "./componentDrawing.js";
 
 // "◯" rather than "○", which the bundled font lacks: a glyph from another font may be wider.
 const PIN_HOLE = "◯";
 const BOARD_INNER_WIDTH = 12;
-const BOARD_CHIP_LABEL = "ESP32";
 const BOARD_PORT_LABEL = "[USB]";
 const LEFT_WIRE = "●━━";
 const RIGHT_WIRE = "━━●";
@@ -28,7 +28,7 @@ export function renderBoardView(profile, wiring = null) {
   const components = wiring ? wiring.usage.components : profile.components;
   const movedPins = wiring ? wiring.usage.moved_pins : [];
   const unlistedGpios = wiring ? wiring.usage.unlisted_gpios : [];
-  const pinLabel = pinLabeler(profile.pinout);
+  const pins = createPinNames(profile);
 
   const view = createElement("div", "board-view");
   view.append(createElement("p", "board-view__title", profile.name));
@@ -41,7 +41,8 @@ export function renderBoardView(profile, wiring = null) {
   );
   for (const { component, role, from_gpio: fromGpio, to_gpio: toGpio } of movedPins) {
     const name = UI_TEXT.usageWithRole(component, role);
-    const notice = UI_TEXT.movedPin(name, fromGpio, toGpio, pinLabel(toGpio));
+    const [from, to] = [pins.name(fromGpio), pins.name(toGpio)];
+    const notice = UI_TEXT.movedPin(name, from, to, pins.label(toGpio));
     view.append(createElement("p", "board-view__notice", `${UI_TEXT.commentPrefix} ${notice}`));
   }
   if (unlistedGpios.length > 0) {
@@ -49,7 +50,7 @@ export function renderBoardView(profile, wiring = null) {
       createElement(
         "p",
         "board-view__warning",
-        `${UI_TEXT.commentPrefix} ${UI_TEXT.unlistedGpios(unlistedGpios)}`,
+        `${UI_TEXT.commentPrefix} ${UI_TEXT.unlistedGpios(unlistedGpios.map(pins.name))}`,
       ),
     );
   }
@@ -68,9 +69,9 @@ export function renderBoardView(profile, wiring = null) {
   if (!wiring) {
     // A board without described pins falls back to the components and where they would go.
     const essentialPins = profile.pinout && renderEssentialPinsTable(profile.pinout);
-    view.append(essentialPins || renderWiringTable(components));
+    view.append(essentialPins || renderWiringTable(components, pins.name));
   } else if (components.length > 0) {
-    view.append(renderComponentCards(components, pinLabel));
+    view.append(renderComponentCards(components, pins.label, profile.supply_pins));
   } else {
     view.append(renderComment(UI_TEXT.noComponentsUsed(wiring.version)));
   }
@@ -96,7 +97,8 @@ function renderDiagram(pinout, pinNote) {
   const lines = [[[`${indent}┌${"─".repeat(BOARD_INNER_WIDTH)}┐`, null]]];
 
   for (let row = 0; row < rowCount; row += 1) {
-    const middle = row === chipRow ? centered(BOARD_CHIP_LABEL) : " ".repeat(BOARD_INNER_WIDTH - 2);
+    const middle =
+      row === chipRow ? centered(pinout.label ?? "") : " ".repeat(BOARD_INNER_WIDTH - 2);
     lines.push([
       ...leftSide(pinout.left[row], pinNote, labelWidth, leftNoteWidth),
       [`┤${PIN_HOLE}${middle}${PIN_HOLE}├`, null],
@@ -125,12 +127,12 @@ function renderArt(lines, className) {
 }
 
 /** One card per component: its name, its drawing and the wiring text, which screen readers get. */
-function renderComponentCards(components, pinLabel) {
+function renderComponentCards(components, pinLabel, supplyPins) {
   const cards = createElement("div", "component-cards");
   for (const component of components) {
     const card = createElement("div", "component-card");
     card.append(createElement("p", "component-card__name", component.name));
-    const drawing = drawComponent(component, pinLabel);
+    const drawing = drawComponent(component, pinLabel, supplyPins);
     if (drawing) {
       card.append(renderArt(drawing, "component-card__drawing"));
     }
@@ -138,14 +140,6 @@ function renderComponentCards(components, pinLabel) {
     cards.append(card);
   }
   return cards;
-}
-
-/** Name GPIOs as printed on the board's header, so the drawings match the board drawing. */
-function pinLabeler(pinout) {
-  const labels = new Map(
-    pinout ? [...pinout.left, ...pinout.right].map((pin) => [pin.gpio, pin.label]) : [],
-  );
-  return (gpio) => labels.get(gpio) ?? UI_TEXT.pinWithRole(gpio);
 }
 
 function leftSide(pin, pinNote, labelWidth, noteWidth) {
@@ -209,10 +203,10 @@ function essentialPinNote(pin) {
   return pin.note ? { note: pin.note, className: ESSENTIAL_PIN_CLASS } : NO_USAGE;
 }
 
-function renderWiringTable(components) {
+function renderWiringTable(components, pinName) {
   const rows = components.map((component) => [
     component.name,
-    component.pins.map((pin) => UI_TEXT.pinWithRole(pin.gpio, pin.role)).join(", "),
+    component.pins.map((pin) => UI_TEXT.pinWithRole(pinName(pin.gpio), pin.role)).join(", "),
     component.wiring ?? component.type,
   ]);
   return renderTerminalTable(UI_TEXT.wiringHeaders, rows);

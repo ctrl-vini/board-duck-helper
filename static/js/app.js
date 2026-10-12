@@ -19,6 +19,7 @@ import { UI_TEXT, errorMessageFor } from "./ui-text.js";
 import { createCommandHistory } from "./utils/commandHistory.js";
 import { readConversationId, writeConversationId } from "./utils/conversationUrl.js";
 import { fitToContent } from "./utils/fitToContent.js";
+import { createPinNames } from "./utils/pinNames.js";
 import { playQuack } from "./utils/quackSound.js";
 import { pickAtRandom } from "./utils/random.js";
 import { bindShortcuts } from "./utils/shortcuts.js";
@@ -235,9 +236,9 @@ function openBoardPane() {
 async function showBoard(reply) {
   clearErrors();
   try {
-    const wiring = await renderBoardPane(reply);
+    const { profile, wiring } = await renderBoardPane(reply);
     setBoardPaneOpen(true);
-    speakAboutBoard(wiring);
+    speakAboutBoard(profile, wiring);
   } catch (error) {
     showError(errorMessageFor(error));
     duck.speak("confused", UI_TEXT.duck.confused);
@@ -245,7 +246,7 @@ async function showBoard(reply) {
   elements.requestInput.focus();
 }
 
-/** Draw the whole board, or what one reply's code uses, in the pane; returns that wiring. */
+/** Draw the whole board, or what one reply's code uses, in the pane; returns both. */
 async function renderBoardPane(reply) {
   const profile = await loadBoardProfile(elements.boardSelect.value);
   const wiring = reply
@@ -255,7 +256,7 @@ async function renderBoardPane(reply) {
   elements.boardPaneBody.scrollTop = 0;
   state.boardPaneReply = reply;
   updateBoardScopeButton();
-  return wiring;
+  return { profile, wiring };
 }
 
 /** Redraw an open pane without the duck's comment, when the conversation changes under it. */
@@ -265,11 +266,12 @@ function refreshBoardPane(reply) {
   }
 }
 
-function speakAboutBoard(wiring) {
+function speakAboutBoard(profile, wiring) {
   if (!wiring) {
     duck.speak("happy", UI_TEXT.duck.board);
   } else if (wiring.usage.unlisted_gpios.length > 0) {
-    duck.speak("confused", UI_TEXT.duck.unlistedGpios(wiring.version, wiring.usage.unlisted_gpios));
+    const names = wiring.usage.unlisted_gpios.map(createPinNames(profile).name);
+    duck.speak("confused", UI_TEXT.duck.unlistedGpios(wiring.version, names));
   } else if (wiring.usage.moved_pins.length > 0) {
     duck.speak("happy", UI_TEXT.duck.movedPins(wiring.version, wiring.usage.moved_pins.length));
   } else if (wiring.usage.components.length === 0) {

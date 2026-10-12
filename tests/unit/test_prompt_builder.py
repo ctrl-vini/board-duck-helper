@@ -3,7 +3,7 @@
 from string import Template
 
 from app.clients.llm_client import ChatMessage
-from app.schemas.board import BoardProfile, HeaderPin, Pinout
+from app.schemas.board import BoardProfile, HeaderPin, Pinout, SupplyPins
 from app.services.prompt_builder import PromptBuilder
 
 TEMPLATE = Template("Board ${board_name} in ${language} for ${framework}.\n${board_profile}")
@@ -72,3 +72,15 @@ def test_ide_board_is_left_out_of_the_prompt(board_profile: BoardProfile) -> Non
     system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
 
     assert "DOIT" not in system_message.content
+
+
+def test_how_pins_are_named_and_powered_is_left_out_of_the_prompt(
+    board_profile: BoardProfile,
+) -> None:
+    supply_pins = SupplyPins(logic="5V", five_volt="5V", ground="GND")
+    profile = board_profile.model_copy(update={"pin_naming": "label", "supply_pins": supply_pins})
+
+    system_message = PromptBuilder(TEMPLATE).build(profile, [], "Blink the LED")[0]
+
+    assert "pin_naming" not in system_message.content
+    assert "supply_pins" not in system_message.content

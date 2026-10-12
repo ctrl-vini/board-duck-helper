@@ -74,6 +74,23 @@ def test_rejects_components_on_gpios_missing_from_the_pinout(
         BoardRegistry.from_directory(boards_dir)
 
 
+def test_rejects_supply_pins_missing_from_the_pinout(
+    boards_dir: Path, board_profile_data: dict[str, Any]
+) -> None:
+    pinout = {"left": [{"label": "D2", "gpio": 2}], "right": [{"label": "GND"}]}
+    supply_pins = {"logic": "3V3", "five_volt": "5V", "ground": "GND"}
+    profile = {
+        **board_profile_data,
+        "id": "other-board",
+        "pinout": pinout,
+        "supply_pins": supply_pins,
+    }
+    (boards_dir / "other-board.json").write_text(json.dumps(profile), encoding="utf-8")
+
+    with pytest.raises(InvalidBoardProfileError, match="supply pins missing"):
+        BoardRegistry.from_directory(boards_dir)
+
+
 def test_rejects_duplicate_board_ids(boards_dir: Path, board_profile_data: dict[str, Any]) -> None:
     (boards_dir / "copy.json").write_text(json.dumps(board_profile_data), encoding="utf-8")
 
@@ -91,3 +108,6 @@ def test_shipped_profiles_are_valid() -> None:
     registry = BoardRegistry.from_directory(DEFAULT_BOARDS_DIR)
 
     assert registry.get_board("esp32")
+    for profile in registry.list_boards():
+        assert profile.pinout is not None
+        assert profile.supply_pins is not None

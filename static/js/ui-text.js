@@ -4,11 +4,9 @@ export const LOCALE = "pt-BR";
 
 const listFormat = new Intl.ListFormat(LOCALE, { type: "conjunction" });
 
-/** "o GPIO 13" or "os GPIOs 12 e 13", to name the pins a code uses. */
-function gpioList(gpios) {
-  return gpios.length === 1
-    ? `o GPIO ${gpios[0]}`
-    : `os GPIOs ${listFormat.format(gpios.map(String))}`;
+/** "o GPIO 13" or "os pinos D12 e D13", from the names of the pins a code uses. */
+function pinList(names) {
+  return names.length === 1 ? `o ${names[0]}` : `os pinos ${listFormat.format(names)}`;
 }
 
 export const UI_TEXT = {
@@ -67,7 +65,10 @@ export const UI_TEXT = {
   essentialPinsHeaders: ["pino", "para que serve"],
   essentialPinsHint:
     "em azul, os pinos que quase todo circuito usa; os componentes aparecem quando houver código",
-  pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
+  gpioName: (gpio) => `GPIO ${gpio}`,
+  // A digital pin missing from the drawn header, such as the Mega's pins 22 to 53.
+  digitalPinName: (gpio) => `D${gpio}`,
+  pinWithRole: (name, role) => (role ? `${name} (${role})` : name),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
   noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
   ideBoard: (name) => `na Arduino IDE, selecione a placa ${name}`,
@@ -76,11 +77,11 @@ export const UI_TEXT = {
   versionWiring: (version) => `ligações da versão ${version}`,
   wiringOfVersion: (version) => `ligações da versão ${version}: só o que o código usa`,
   noComponentsUsed: (version) => `o código da versão ${version} não usa nenhum componente da placa`,
-  unlistedGpios: (gpios) =>
-    `atenção: o código usa ${gpioList(gpios)}, mas não há componente ligado ${gpios.length === 1 ? "nele" : "neles"}`,
+  unlistedGpios: (names) =>
+    `atenção: o código usa ${pinList(names)}, mas não há componente ligado ${names.length === 1 ? "nele" : "neles"}`,
   unlistedPinNote: "sem componente",
-  movedPin: (component, fromGpio, toGpio, pinLabel) =>
-    `${component} mudou do GPIO ${fromGpio} para o GPIO ${toGpio}: ligue o fio no ${pinLabel}`,
+  movedPin: (component, fromName, toName, pinLabel) =>
+    `${component} mudou do ${fromName} para o ${toName}: ligue o fio no ${pinLabel}`,
   componentDrawing: {
     labels: {
       led: "LED",
@@ -182,8 +183,8 @@ export const UI_TEXT = {
       count === 1
         ? `Na versão ${version}, um componente mudou de pino. Muda o fio de lugar também!`
         : `Na versão ${version}, alguns componentes mudaram de pino. Muda os fios de lugar também!`,
-    unlistedGpios: (version, gpios) =>
-      `Hmm, a versão ${version} usa ${gpioList(gpios)}, e não tem nada ligado ${gpios.length === 1 ? "nele" : "neles"}.`,
+    unlistedGpios: (version, names) =>
+      `Hmm, a versão ${version} usa ${pinList(names)}, e não tem nada ligado ${names.length === 1 ? "nele" : "neles"}.`,
     help: "Esses são os comandos que eu entendo.",
     quacks: ["Quack!", "Quack quack!", "QUACK!"],
   },

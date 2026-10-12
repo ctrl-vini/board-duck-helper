@@ -80,6 +80,7 @@
     }
   ],
   "pin_names": { "LED_BUILTIN": 2, "SDA": 21, "SCL": 22 },
+  "supply_pins": { "logic": "3V3", "five_volt": "VIN", "ground": "GND" },
   "notes": [
     "Os GPIO 34 a 39 são somente entrada e não têm pull-up nem pull-down internos.",
     "Os pinos do ADC2 não leem valores analógicos com o WiFi ligado; entradas analógicas usam pinos do ADC1 (GPIO 32 a 39).",
@@ -90,6 +91,7 @@
     "O monitor serial usa 115200 baud."
   ],
   "pinout": {
+    "label": "ESP32",
     "caption": "Vista de cima, com a antena no topo e o USB embaixo (modelo de 30 pinos).",
     "left": [
       {

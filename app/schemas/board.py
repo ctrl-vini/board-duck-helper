@@ -5,6 +5,12 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 BOARD_ID_PATTERN = r"^[a-z0-9][a-z0-9-]*$"
+# The board drawing has 12 columns inside: a pin hole at each edge, then a space on each side
+# of its label.
+BOARD_LABEL_MAX_LENGTH = 8
+
+# How the interface names a pin in its messages: "GPIO 13", or the header label, such as "D13".
+PinNaming = Literal["gpio", "label"]
 
 # What a component is, so the board view can draw it; one drawing exists for each kind.
 ComponentKind = Literal["led", "button", "buzzer", "dht22", "potentiometer", "oled", "relay"]
@@ -47,8 +53,12 @@ class HeaderPin(ProfileModel):
 
 
 class Pinout(ProfileModel):
-    """Physical order of the header pins on each side, used to draw the board for students."""
+    """Physical order of the header pins on each side, used to draw the board for students.
 
+    label is written in the middle of the drawing, such as the board's name.
+    """
+
+    label: str | None = Field(default=None, max_length=BOARD_LABEL_MAX_LENGTH)
     caption: str | None = None
     left: list[HeaderPin] = Field(min_length=1)
     right: list[HeaderPin] = Field(min_length=1)
@@ -56,6 +66,22 @@ class Pinout(ProfileModel):
     def gpios(self) -> set[int]:
         """Every GPIO number available on the header."""
         return {pin.gpio for pin in (*self.left, *self.right) if pin.gpio is not None}
+
+    def labels(self) -> set[str]:
+        """Every label printed on the header."""
+        return {pin.label for pin in (*self.left, *self.right)}
+
+
+class SupplyPins(ProfileModel):
+    """Header labels of the pins the component drawings take power from.
+
+    logic is at the voltage of the GPIOs, for sensors and displays; five_volt powers 5 V modules
+    such as relays; ground is the negative.
+    """
+
+    logic: str = Field(min_length=1)
+    five_volt: str = Field(min_length=1)
+    ground: str = Field(min_length=1)
 
 
 class BoardProfile(ProfileModel):
@@ -72,9 +98,11 @@ class BoardProfile(ProfileModel):
     components: list[Component] = Field(min_length=1)
     notes: list[str] = Field(default_factory=list)
     pinout: Pinout | None = None
-    # Names the board's Arduino core predefines for some pins, such as LED_BUILTIN, SDA and SCL,
-    # so the pins of generated code that uses them can be found.
+    # Names the board's Arduino core predefines for some pins, such as LED_BUILTIN, A0, SDA and
+    # SCL, so the pins of generated code that uses them can be found.
     pin_names: dict[str, int] = Field(default_factory=dict)
+    pin_naming: PinNaming = "gpio"
+    supply_pins: SupplyPins | None = None
 
     @model_validator(mode="after")
     def check_component_pins_exist(self) -> Self:
@@ -85,6 +113,21 @@ class BoardProfile(ProfileModel):
         missing = sorted(used - self.pinout.gpios())
         if missing:
             raise ValueError(f"components use GPIOs missing from the pinout: {missing}")
+        return self
+
+    @model_validator(mode="after")
+    def check_supply_pins_exist(self) -> Self:
+        """The supply pins must be on the header, when the layout is given."""
+        if self.pinout is None or self.supply_pins is None:
+            return self
+        supply_labels = {
+            self.supply_pins.logic,
+            self.supply_pins.five_volt,
+            self.supply_pins.ground,
+        }
+        missing = sorted(supply_labels - self.pinout.labels())
+        if missing:
+            raise ValueError(f"supply pins missing from the pinout: {missing}")
         return self
 
 
