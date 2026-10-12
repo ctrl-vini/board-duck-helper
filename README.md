@@ -172,7 +172,9 @@ text. For example:
 
 The profile is sent to the model as context without `pinout`, `pin_names`, the kinds and the
 `wiring` texts: those are for the student and for reading the code, and leaving them out keeps
-the prompt shorter. The texts the student reads are in Brazilian Portuguese.
+the prompt shorter. The `notes` do go to the model: they are where the profile tells it how to
+use the board's libraries and core, such as which calls exist for PWM. The texts the student
+reads are in Brazilian Portuguese.
 
 ## Development checks
 
