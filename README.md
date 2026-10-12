@@ -28,6 +28,28 @@ ollama run qwen2.5-coder:7b --verbose "Write an Arduino sketch for the ESP32 tha
 
 `--verbose` prints the load time and the generation speed after the answer.
 
+## Running
+
+```bash
+python server.py
+```
+
+The log shows the address to open from any device on the local network. The interactive API
+documentation is available at `/docs`.
+
+## Configuration
+
+All settings are environment variables with defaults, so nothing needs to be set to get started.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_HOST` | `0.0.0.0` | Network interface the server listens on |
+| `APP_PORT` | `8000` | Server port |
+| `APP_OLLAMA_URL` | `http://localhost:11434` | Address of the Ollama service |
+| `APP_OLLAMA_MODEL` | `qwen2.5-coder:7b` | Model used to generate code |
+
+Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
+
 ## Development checks
 
 Run before every commit:
