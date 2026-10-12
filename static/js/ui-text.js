@@ -64,6 +64,9 @@ export const UI_TEXT = {
     copyright: "© 2026 José Vinícius Alves de Oliveira. Todos os direitos reservados.",
   },
   wiringHeaders: ["componente", "pinos", "como ligar"],
+  essentialPinsHeaders: ["pino", "para que serve"],
+  essentialPinsHint:
+    "em azul, os pinos que quase todo circuito usa; os componentes aparecem quando houver código",
   pinWithRole: (gpio, role) => (role ? `GPIO ${gpio} (${role})` : `GPIO ${gpio}`),
   usageWithRole: (name, role) => (role ? `${name} (${role})` : name),
   noPinout: "esta placa não tem a pinagem cadastrada; veja só a tabela de ligações",
@@ -171,7 +174,7 @@ export const UI_TEXT = {
     unchanged: (version) =>
       `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
-    board: "Abri a placa num painel. Os pinos em amarelo já têm componente ligado.",
+    board: "Abri a placa num painel. Quando houver código, eu mostro o que ligar em cada pino.",
     wiring: (version) =>
       `Essas são as ligações da versão ${version}. Os pinos em amarelo são os que o código usa.`,
     noComponents: (version) => `A versão ${version} não usa nenhum componente da placa.`,

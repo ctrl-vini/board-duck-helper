@@ -421,6 +421,11 @@ body {
   color: var(--color-duck);
 }
 
+/* Power, ground and reset: marked on the board before any code says what else to wire. */
+.board-diagram__essential {
+  color: var(--color-path);
+}
+
 /* A pin the code uses with nothing wired to it: usually a pin the model made up. */
 .board-diagram__unlisted,
 .board-view__warning {

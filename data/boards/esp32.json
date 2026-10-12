@@ -92,7 +92,11 @@
   "pinout": {
     "caption": "Vista de cima, com a antena no topo e o USB embaixo (modelo de 30 pinos).",
     "left": [
-      { "label": "EN" },
+      {
+        "label": "EN",
+        "note": "reset",
+        "description": "Reinicia a placa quando é ligado ao GND; o botão EN da placa faz isso."
+      },
       { "label": "VP", "gpio": 36 },
       { "label": "VN", "gpio": 39 },
       { "label": "D34", "gpio": 34 },
@@ -105,14 +109,32 @@
       { "label": "D14", "gpio": 14 },
       { "label": "D12", "gpio": 12 },
       { "label": "D13", "gpio": 13 },
-      { "label": "GND" },
-      { "label": "VIN" }
+      {
+        "label": "GND",
+        "note": "terra (−)",
+        "description": "Terra, o negativo do circuito: todo componente precisa de um fio no GND."
+      },
+      {
+        "label": "VIN",
+        "note": "5 V",
+        "description": "Tem os 5 V do USB: alimenta módulos de 5 V, como o relé. Também pode alimentar a placa sem o USB."
+      }
     ],
     "right": [
       { "label": "D23", "gpio": 23 },
       { "label": "D22", "gpio": 22 },
-      { "label": "TX0", "gpio": 1 },
-      { "label": "RX0", "gpio": 3 },
+      {
+        "label": "TX0",
+        "gpio": 1,
+        "note": "serial do USB",
+        "description": "Ligados ao USB: o monitor serial e a gravação do código usam esses pinos. Evite ligar componentes neles."
+      },
+      {
+        "label": "RX0",
+        "gpio": 3,
+        "note": "serial do USB",
+        "description": "Ligados ao USB: o monitor serial e a gravação do código usam esses pinos. Evite ligar componentes neles."
+      },
       { "label": "D21", "gpio": 21 },
       { "label": "D19", "gpio": 19 },
       { "label": "D18", "gpio": 18 },
@@ -122,8 +144,16 @@
       { "label": "D4", "gpio": 4 },
       { "label": "D2", "gpio": 2 },
       { "label": "D15", "gpio": 15 },
-      { "label": "GND" },
-      { "label": "3V3" }
+      {
+        "label": "GND",
+        "note": "terra (−)",
+        "description": "Terra, o negativo do circuito: todo componente precisa de um fio no GND."
+      },
+      {
+        "label": "3V3",
+        "note": "3,3 V",
+        "description": "Saída de 3,3 V da placa: alimenta sensores e o display. É também a tensão dos GPIOs."
+      }
     ]
   }
 }

@@ -14,12 +14,15 @@ const NO_WIRE = "   ";
 const SIDE_DECORATION_WIDTH = 1 + LEFT_WIRE.length + 1 + 1 + 1;
 const USED_PIN_CLASS = "board-diagram__used";
 const UNLISTED_PIN_CLASS = "board-diagram__unlisted";
+const ESSENTIAL_PIN_CLASS = "board-diagram__essential";
 const NO_USAGE = { note: "", className: null };
 
 /**
  * What the student needs to wire the board: the drawing, the connections and the notes.
- * With wiring ({ version, usage }), only what that code version uses is shown, each component
- * drawn with where its legs go; pins the code moved and pins it uses with no component are flagged.
+ * Without wiring, nothing is connected yet: only the pins nearly every circuit uses, such as GND
+ * and 3V3, are marked, with what each is for. With wiring ({ version, usage }), only what that
+ * code version uses is shown, each component drawn with where its legs go; pins the code moved
+ * and pins it uses with no component are flagged.
  */
 export function renderBoardView(profile, wiring = null) {
   const components = wiring ? wiring.usage.components : profile.components;
@@ -33,9 +36,9 @@ export function renderBoardView(profile, wiring = null) {
   if (profile.ide_board) {
     view.append(renderComment(UI_TEXT.ideBoard(profile.ide_board)));
   }
-  if (wiring) {
-    view.append(renderComment(UI_TEXT.wiringOfVersion(wiring.version)));
-  }
+  view.append(
+    renderComment(wiring ? UI_TEXT.wiringOfVersion(wiring.version) : UI_TEXT.essentialPinsHint),
+  );
   for (const { component, role, from_gpio: fromGpio, to_gpio: toGpio } of movedPins) {
     const name = UI_TEXT.usageWithRole(component, role);
     const notice = UI_TEXT.movedPin(name, fromGpio, toGpio, pinLabel(toGpio));
@@ -52,7 +55,10 @@ export function renderBoardView(profile, wiring = null) {
   }
 
   if (profile.pinout) {
-    view.append(renderDiagram(profile.pinout, describeGpioUsage(components, unlistedGpios)));
+    const pinNote = wiring
+      ? gpioPinNote(describeGpioUsage(components, unlistedGpios))
+      : essentialPinNote;
+    view.append(renderDiagram(profile.pinout, pinNote));
     if (profile.pinout.caption) {
       view.append(renderComment(profile.pinout.caption));
     }
@@ -60,7 +66,9 @@ export function renderBoardView(profile, wiring = null) {
     view.append(renderComment(UI_TEXT.noPinout));
   }
   if (!wiring) {
-    view.append(renderWiringTable(components));
+    // A board without described pins falls back to the components and where they would go.
+    const essentialPins = profile.pinout && renderEssentialPinsTable(profile.pinout);
+    view.append(essentialPins || renderWiringTable(components));
   } else if (components.length > 0) {
     view.append(renderComponentCards(components, pinLabel));
   } else {
@@ -73,12 +81,13 @@ export function renderBoardView(profile, wiring = null) {
 }
 
 /**
- * Draw the board with both header rows; a used pin is highlighted and labeled with its component.
- * Each output line is a list of [text, className] segments, so used pins can be colored.
+ * Draw the board with both header rows; pinNote(pin) gives the note drawn beside a pin and its
+ * color class, such as the component wired to it. Each output line is a list of
+ * [text, className] segments, so marked pins can be colored.
  */
-function renderDiagram(pinout, usage) {
+function renderDiagram(pinout, pinNote) {
   const labelWidth = Math.max(...[...pinout.left, ...pinout.right].map((pin) => pin.label.length));
-  const leftNoteWidth = Math.max(0, ...pinout.left.map((pin) => usageOf(pin, usage).note.length));
+  const leftNoteWidth = Math.max(0, ...pinout.left.map((pin) => pinNote(pin).note.length));
   const rowCount = Math.max(pinout.left.length, pinout.right.length);
   const chipRow = Math.floor(rowCount / 2);
 
@@ -89,9 +98,9 @@ function renderDiagram(pinout, usage) {
   for (let row = 0; row < rowCount; row += 1) {
     const middle = row === chipRow ? centered(BOARD_CHIP_LABEL) : " ".repeat(BOARD_INNER_WIDTH - 2);
     lines.push([
-      ...leftSide(pinout.left[row], usage, labelWidth, leftNoteWidth),
+      ...leftSide(pinout.left[row], pinNote, labelWidth, leftNoteWidth),
       [`┤${PIN_HOLE}${middle}${PIN_HOLE}├`, null],
-      ...rightSide(pinout.right[row], usage, labelWidth),
+      ...rightSide(pinout.right[row], pinNote, labelWidth),
     ]);
   }
 
@@ -139,11 +148,11 @@ function pinLabeler(pinout) {
   return (gpio) => labels.get(gpio) ?? UI_TEXT.pinWithRole(gpio);
 }
 
-function leftSide(pin, usage, labelWidth, noteWidth) {
+function leftSide(pin, pinNote, labelWidth, noteWidth) {
   if (!pin) {
     return [[" ".repeat(noteWidth + labelWidth + SIDE_DECORATION_WIDTH), null]];
   }
-  const { note, className } = usageOf(pin, usage);
+  const { note, className } = pinNote(pin);
   const wire = note ? LEFT_WIRE : NO_WIRE;
   return [
     [`${note.padStart(noteWidth)} ${wire} ${pin.label.padStart(labelWidth)} `, className],
@@ -151,11 +160,11 @@ function leftSide(pin, usage, labelWidth, noteWidth) {
   ];
 }
 
-function rightSide(pin, usage, labelWidth) {
+function rightSide(pin, pinNote, labelWidth) {
   if (!pin) {
     return [];
   }
-  const { note, className } = usageOf(pin, usage);
+  const { note, className } = pinNote(pin);
   const label = ` ${pin.label.padEnd(labelWidth)}`;
   return [
     ["─", null],
@@ -189,31 +198,68 @@ function describeGpioUsage(components, unlistedGpios) {
   return usage;
 }
 
-function usageOf(pin, usage) {
-  return pin.gpio === undefined || pin.gpio === null ? NO_USAGE : (usage.get(pin.gpio) ?? NO_USAGE);
+/** Notes for the pins a code version uses, looked up by GPIO. */
+function gpioPinNote(usage) {
+  return (pin) =>
+    pin.gpio === undefined || pin.gpio === null ? NO_USAGE : (usage.get(pin.gpio) ?? NO_USAGE);
+}
+
+/** Notes for the pins nearly every circuit uses, such as GND, from the profile. */
+function essentialPinNote(pin) {
+  return pin.note ? { note: pin.note, className: ESSENTIAL_PIN_CLASS } : NO_USAGE;
 }
 
 function renderWiringTable(components) {
-  const table = createElement("table", "terminal-table");
+  const rows = components.map((component) => [
+    component.name,
+    component.pins.map((pin) => UI_TEXT.pinWithRole(pin.gpio, pin.role)).join(", "),
+    component.wiring ?? component.type,
+  ]);
+  return renderTerminalTable(UI_TEXT.wiringHeaders, rows);
+}
+
+/** What each described pin is for; pins with the same description, like TX0 and RX0, share a row. */
+function renderEssentialPinsTable(pinout) {
+  const labelsByDescription = new Map();
+  for (const pin of [...pinout.left, ...pinout.right]) {
+    if (pin.description) {
+      const labels = labelsByDescription.get(pin.description) ?? [];
+      if (!labels.includes(pin.label)) {
+        labels.push(pin.label);
+      }
+      labelsByDescription.set(pin.description, labels);
+    }
+  }
+  if (labelsByDescription.size === 0) {
+    return null;
+  }
+  const rows = [...labelsByDescription].map(([description, labels]) => [
+    labels.join(", "),
+    description,
+  ]);
+  return renderTerminalTable(UI_TEXT.essentialPinsHeaders, rows);
+}
+
+/** A table printed like command output; the first cell of each row is its key. */
+function renderTerminalTable(headers, rows) {
   const headerRow = createElement("tr");
-  for (const header of UI_TEXT.wiringHeaders) {
+  for (const header of headers) {
     headerRow.append(createElement("th", null, header));
   }
   const head = createElement("thead");
   head.append(headerRow);
 
   const body = createElement("tbody");
-  for (const component of components) {
-    const pins = component.pins.map((pin) => UI_TEXT.pinWithRole(pin.gpio, pin.role)).join(", ");
+  for (const [key, ...cells] of rows) {
     const row = createElement("tr");
     row.append(
-      createElement("td", "terminal-table__key", component.name),
-      createElement("td", null, pins),
-      createElement("td", null, component.wiring ?? component.type),
+      createElement("td", "terminal-table__key", key),
+      ...cells.map((cell) => createElement("td", null, cell)),
     );
     body.append(row);
   }
 
+  const table = createElement("table", "terminal-table");
   table.append(head, body);
   return table;
 }

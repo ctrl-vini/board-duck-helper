@@ -81,7 +81,7 @@ A few words typed at the prompt are commands that the page answers by itself, wi
 | Command | Also | What it does | Shortcut |
 | --- | --- | --- | --- |
 | `help` | `ajuda` | Prints the commands and their shortcuts | — |
-| `pinout` | — | Opens the board in a pane beside the conversation, like a split terminal. Before any code it shows every component; afterwards, what the latest version uses, following each new version, and `[ placa completa ]` switches back to every component. The duck shrinks to one line to make room; on small screens the pane takes the whole screen until `[ fechar ]` | Ctrl + P |
+| `pinout` | — | Opens the board in a pane beside the conversation, like a split terminal. Before any code nothing is wired yet, so it marks only the pins nearly every circuit uses, such as GND, 3V3 and VIN, and says what each is for; afterwards, it shows what the latest version uses, following each new version, and `[ placa completa ]` switches back to the bare board. The duck shrinks to one line to make room; on small screens the pane takes the whole screen until `[ fechar ]` | Ctrl + P |
 | `clear` | `cls`, `reset`, `clear-host`, `clc` | Asks for confirmation (Enter clears, Esc cancels) and empties the screen; the next request starts a new conversation, so the model no longer sees the earlier messages | Ctrl + L |
 | `about` | `sobre` | Shows what Duckoder is, the running version and the credits | Ctrl + S |
 | `quack` | — | The duck quacks, with a sound made by the Web Audio API | — |
@@ -162,8 +162,10 @@ message naming the file.
 | `pin_names` | Optional names the board's Arduino core gives to some pins, such as `LED_BUILTIN`, `SDA` and `SCL`, used to find the pins in generated code |
 
 Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`. Each header
-pin has a `label` and, when it is a GPIO, its `gpio` number; a profile whose components use a
-GPIO missing from its pinout is rejected. The `kind` is one of `led`, `button`, `buzzer`,
+pin has a `label` and, when it is a GPIO, its `gpio` number; the pins nearly every circuit uses,
+such as GND and 3V3, also get a short `note` drawn beside them and a `description` of what they
+are for, which the board view shows before any code. A profile whose components use a GPIO
+missing from its pinout is rejected. The `kind` is one of `led`, `button`, `buzzer`,
 `dht22`, `potentiometer`, `oled` and `relay`, each with its own drawing in
 `static/js/components/componentDrawing.js`, whose power legs go to the ESP32 DevKit's `3V3`,
 `GND` and `VIN` pins; a component without a kind, such as a built-in LED, shows only its wiring

@@ -34,10 +34,16 @@ class Component(ProfileModel):
 
 
 class HeaderPin(ProfileModel):
-    """One pin of the board's header; gpio is empty for power and ground pins."""
+    """One pin of the board's header; gpio is empty for power and ground pins.
+
+    Pins nearly every circuit uses, such as GND and 3V3, get a short note drawn beside them and a
+    description of what they are for, shown while no code says what else to wire.
+    """
 
     label: str = Field(min_length=1)
     gpio: int | None = Field(default=None, ge=0)
+    note: str | None = None
+    description: str | None = None
 
 
 class Pinout(ProfileModel):
