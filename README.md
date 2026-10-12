@@ -54,7 +54,9 @@ python server.py
 ```
 
 The log shows the address to open from any device on the local network: that page is the
-interface students use. The interactive API documentation is available at `/docs`.
+interface students use. The interactive API documentation is available at `/docs`. The
+interface files are sent with `Cache-Control: no-cache`, so browsers check for a newer version on
+every load and an updated interface reaches students with a plain reload.
 
 ## The interface
 

@@ -1,11 +1,11 @@
 """Application factory: the single place where the services are built and wired together."""
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from app.clients.llm_client import LlmClient, OllamaClient
 from app.config import Settings
 from app.errors import register_error_handlers
+from app.frontend import FrontendFiles
 from app.repositories.conversation_repository import ConversationRepository
 from app.routers import boards, conversations, version
 from app.services.board_registry import BoardRegistry
@@ -35,5 +35,5 @@ def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastA
     app.include_router(version.router)
 
     # Mounted at "/", the frontend would capture every API route, so it must be registered last.
-    app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="frontend")
+    app.mount("/", FrontendFiles(directory=settings.static_dir, html=True), name="frontend")
     return app
