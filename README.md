@@ -47,8 +47,17 @@ All settings are environment variables with defaults, so nothing needs to be set
 | `APP_PORT` | `8000` | Server port |
 | `APP_OLLAMA_URL` | `http://localhost:11434` | Address of the Ollama service |
 | `APP_OLLAMA_MODEL` | `qwen2.5-coder:7b` | Model used to generate code |
+| `APP_BOARDS_DIR` | `data/boards` | Folder with the board profiles |
 
 Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
+
+## Adding a board
+
+Each board is described by one JSON file in `data/boards/`: its microcontroller, target language
+and framework, the components wired to it with their pins, and notes on usage restrictions. This
+profile is sent to the model as context; the API only exposes the board's id, name and
+microcontroller. To add a board, copy `esp32.json`, give it a new `id` and restart the server.
+Invalid files stop the server at startup with a message naming the file.
 
 ## Development checks
 

@@ -1,0 +1,26 @@
+{
+  "id": "esp32",
+  "name": "ESP32 DevKit V1",
+  "microcontroller": "ESP32 (dual-core Xtensa LX6, 240 MHz, WiFi and Bluetooth)",
+  "language": "C++",
+  "framework": "Arduino (ESP32 core)",
+  "components": [
+    { "name": "Built-in LED", "type": "digital output", "pin": "GPIO 2" },
+    { "name": "Green LED", "type": "digital output", "pin": "GPIO 25" },
+    { "name": "Yellow LED", "type": "digital output", "pin": "GPIO 26" },
+    { "name": "Red LED", "type": "digital output", "pin": "GPIO 27" },
+    { "name": "Push button", "type": "digital input, wired to GND, use the internal pull-up", "pin": "GPIO 4" },
+    { "name": "Passive buzzer", "type": "PWM output", "pin": "GPIO 18" },
+    { "name": "DHT22 temperature and humidity sensor", "type": "single-wire digital", "pin": "GPIO 15" },
+    { "name": "Potentiometer", "type": "analog input (12-bit ADC, 0 to 4095)", "pin": "GPIO 34" },
+    { "name": "SSD1306 OLED display, 128x64, address 0x3C", "type": "I2C", "pin": "SDA GPIO 21, SCL GPIO 22" },
+    { "name": "Relay module", "type": "digital output, active HIGH", "pin": "GPIO 23" }
+  ],
+  "notes": [
+    "GPIO 34 to 39 are input only and have no internal pull-up or pull-down resistors.",
+    "ADC2 pins cannot read analog values while WiFi is active; analog inputs use ADC1 pins (GPIO 32 to 39).",
+    "Use the Adafruit SSD1306 and Adafruit GFX libraries for the display.",
+    "Use the Adafruit DHT sensor library for the DHT22.",
+    "The serial monitor runs at 115200 baud."
+  ]
+}
