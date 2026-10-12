@@ -106,6 +106,7 @@ Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
 | POST | `/conversations` | `{"board_id"}` | `201` the new, empty conversation |
 | POST | `/conversations/{id}/messages` | `{"content"}` | `201` the model's reply, with `code`, `explanation` and `metrics` |
 | GET | `/conversations/{id}` | — | `200` the conversation with every message |
+| GET | `/version` | — | `200` the application's `name` and `version` |
 
 Errors use `{"detail": "..."}`: `404` for an unknown board or conversation, `422` for an invalid
 body, `502` when Ollama cannot answer. If the model fails, nothing is saved, so the student can

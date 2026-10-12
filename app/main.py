@@ -7,7 +7,7 @@ from app.clients.llm_client import LlmClient, OllamaClient
 from app.config import Settings
 from app.errors import register_error_handlers
 from app.repositories.conversation_repository import ConversationRepository
-from app.routers import boards, conversations
+from app.routers import boards, conversations, version
 from app.services.board_registry import BoardRegistry
 from app.services.conversation_service import ConversationService
 from app.services.prompt_builder import PromptBuilder
@@ -32,6 +32,7 @@ def create_app(settings: Settings, llm_client: LlmClient | None = None) -> FastA
     register_error_handlers(app)
     app.include_router(boards.router)
     app.include_router(conversations.router)
+    app.include_router(version.router)
 
     # Mounted at "/", the frontend would capture every API route, so it must be registered last.
     app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="frontend")
