@@ -32,6 +32,7 @@ const elements = {
 const state = {
   conversationId: null,
   codeVersion: 0,
+  latestCode: null,
 };
 
 async function init() {
@@ -117,8 +118,8 @@ async function handleSubmit(event) {
     const conversationId = await ensureConversation();
     const reply = await api.sendMessage(conversationId, content);
     pending.remove();
-    appendMessage(reply, "start");
-    setDuckMood(elements.duck, "happy", duckReactionTo(reply));
+    const codeVersion = appendMessage(reply, "start");
+    reactToReply(reply, codeVersion);
   } catch (error) {
     // The server stores nothing when a request fails, so the screen drops it too and
     // gives the text back for another try.
@@ -145,6 +146,7 @@ async function ensureConversation() {
 function startNewConversation() {
   state.conversationId = null;
   state.codeVersion = 0;
+  state.latestCode = null;
   writeConversationId(null);
   elements.lines.replaceChildren();
   updateMotd();
@@ -152,24 +154,39 @@ function startNewConversation() {
   elements.requestInput.focus();
 }
 
+/** Show a message; for replies, returns how its code was numbered. */
 function appendMessage(message, scrollAlignment = "nearest") {
-  const element =
-    message.role === "user"
-      ? renderCommandLine(message.content)
-      : renderReply(message, nextCodeVersion(message));
-  return appendToTranscript(element, scrollAlignment);
-}
-
-/** Replies that carry code are numbered, so the student can tell each revision apart. */
-function nextCodeVersion(message) {
-  if (message.code) {
-    state.codeVersion += 1;
+  if (message.role === "user") {
+    appendToTranscript(renderCommandLine(message.content), scrollAlignment);
+    return null;
   }
-  return state.codeVersion;
+  const codeVersion = trackCodeVersion(message);
+  appendToTranscript(renderReply(message, codeVersion), scrollAlignment);
+  return codeVersion;
 }
 
-function duckReactionTo(reply) {
-  return reply.code ? UI_TEXT.duck.happy(state.codeVersion) : UI_TEXT.duck.noCode;
+/**
+ * Number the replies that carry code, so the student can tell each revision apart, and notice
+ * when a reply repeats the previous code unchanged.
+ */
+function trackCodeVersion(message) {
+  if (!message.code) {
+    return { version: state.codeVersion, repeatsVersion: null };
+  }
+  const repeatsVersion = message.code === state.latestCode ? state.codeVersion : null;
+  state.codeVersion += 1;
+  state.latestCode = message.code;
+  return { version: state.codeVersion, repeatsVersion };
+}
+
+function reactToReply(reply, codeVersion) {
+  if (!reply.code) {
+    setDuckMood(elements.duck, "confused", UI_TEXT.duck.noCode);
+  } else if (codeVersion.repeatsVersion) {
+    setDuckMood(elements.duck, "confused", UI_TEXT.duck.unchanged(codeVersion.repeatsVersion));
+  } else {
+    setDuckMood(elements.duck, "happy", UI_TEXT.duck.happy(codeVersion.version));
+  }
 }
 
 function appendToTranscript(element, scrollAlignment = "nearest") {

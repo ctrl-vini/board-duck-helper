@@ -11,14 +11,21 @@ export function renderCommandLine(content) {
   return line;
 }
 
-/** A model reply: code (when there is any), the duck's explanation and how it was generated. */
+/**
+ * A model reply: code (when there is any), the duck's explanation and how it was generated.
+ * codeVersion is { version, repeatsVersion }: repeatsVersion is set when the code is identical
+ * to an earlier version, so the student knows the request had no effect.
+ */
 export function renderReply(message, codeVersion) {
   const line = createElement("li", "line line--reply");
 
   if (message.code) {
-    line.append(renderCodeBlock(message.code, codeVersion));
+    line.append(renderCodeBlock(message.code, codeVersion.version));
   } else {
     line.append(renderComment(UI_TEXT.noCode));
+  }
+  if (codeVersion.repeatsVersion) {
+    line.append(renderComment(UI_TEXT.sameCodeAs(codeVersion.repeatsVersion)));
   }
   if (message.explanation) {
     line.append(renderDuckSays(message.explanation));

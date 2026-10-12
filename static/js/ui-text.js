@@ -20,6 +20,7 @@ export const UI_TEXT = {
   codeVersion: (version) => `versão ${version}`,
   generatedBy: (model, duration) => `gerado por ${model} em ${duration}`,
   noCode: "esta resposta veio sem código",
+  sameCodeAs: (version) => `o código é igual ao da versão ${version}`,
   motd: {
     title: "Board Code Assistant 0.1.0",
     lines: [
@@ -38,6 +39,8 @@ export const UI_TEXT = {
     thinking: "Hmm, deixa eu pensar",
     happy: (version) => `Pronto! A versão ${version} está no terminal.`,
     noCode: "Não saiu código desta vez. Tenta explicar de outro jeito?",
+    unchanged: (version) =>
+      `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
   },
   conversationNotFound: "a conversa do link não existe mais; comece uma nova conversa",
