@@ -11,6 +11,7 @@ function pinList(names) {
 
 export const UI_TEXT = {
   boardLabel: "placa:",
+  boardPickerHint: "↑ e ↓ escolhem, enter confirma, esc fecha",
   clearConversation: "limpar conversa",
   showBoard: "ver placa",
   about: "sobre",

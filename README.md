@@ -76,6 +76,9 @@ The page looks like a terminal, with a rubber duck in the corner, as in rubber d
   out and while the explanation of a new reply is typed into the conversation, blinks from time
   to time, and its eye shows whether it is listening, thinking, happy or confused. Its messages
   vary from one request to the next. Animations stop when the system asks for reduced motion.
+- The board is picked in the status bar, from a list drawn like a terminal menu that shows each
+  board's microcontroller: click it, or focus it and use the arrows, Enter and Esc, or type the
+  start of a board's name.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
 

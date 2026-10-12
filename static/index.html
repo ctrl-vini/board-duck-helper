@@ -14,10 +14,32 @@
   <body>
     <header class="status-bar">
       <span class="status-bar__session">duckoder</span>
-      <label class="board-field">
-        <span data-text="boardLabel"></span>
-        <select id="board-select" class="board-field__select"></select>
-      </label>
+      <div class="board-field">
+        <span id="board-label" data-text="boardLabel"></span>
+        <div class="board-picker" id="board-picker">
+          <div
+            class="board-picker__field"
+            role="combobox"
+            tabindex="0"
+            aria-labelledby="board-label"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="board-list"
+          >
+            <span class="board-picker__value"></span>
+            <span class="board-picker__caret" aria-hidden="true"></span>
+          </div>
+          <div class="board-picker__popup" hidden>
+            <ul
+              class="board-picker__list"
+              id="board-list"
+              role="listbox"
+              aria-labelledby="board-label"
+            ></ul>
+            <p class="board-picker__hint" aria-hidden="true" data-text="boardPickerHint"></p>
+          </div>
+        </div>
+      </div>
       <div class="status-bar__actions">
         <button type="button" id="clear-conversation" class="terminal-button" data-shortcut="l">
           <span data-text="clearConversation"></span>

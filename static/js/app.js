@@ -2,7 +2,7 @@
 
 import * as api from "./services/api.js";
 import { createAboutDialog } from "./components/about.js";
-import { fillBoardSelect } from "./components/boardSelect.js";
+import { createBoardPicker } from "./components/boardPicker.js";
 import { renderBoardView } from "./components/boardView.js";
 import { createConfirmDialog } from "./components/confirmDialog.js";
 import { createDuck } from "./components/duck.js";
@@ -28,7 +28,6 @@ import { typeOut } from "./utils/typewriter.js";
 const NOT_FOUND_STATUS = 404;
 
 const elements = {
-  boardSelect: document.getElementById("board-select"),
   clearConversationButton: document.getElementById("clear-conversation"),
   showBoardButton: document.getElementById("show-board"),
   boardPane: document.getElementById("board-pane"),
@@ -46,6 +45,7 @@ const elements = {
 };
 
 const duck = createDuck(document.getElementById("duck"));
+const boardPicker = createBoardPicker(document.getElementById("board-picker"), changeBoard);
 const clearDialog = createConfirmDialog(document.getElementById("clear-dialog"));
 const aboutDialog = createAboutDialog(
   document.getElementById("about-dialog"),
@@ -98,7 +98,6 @@ async function init() {
   elements.closeBoardButton.addEventListener("click", closeBoardPane);
   elements.boardScopeButton.addEventListener("click", toggleBoardScope);
   elements.showAboutButton.addEventListener("click", () => aboutDialog.open());
-  elements.boardSelect.addEventListener("change", changeBoard);
 
   if (await loadBoards()) {
     await restoreConversation();
@@ -116,7 +115,7 @@ function applyStaticTexts() {
 async function loadBoards() {
   try {
     const boards = await api.listBoards();
-    fillBoardSelect(elements.boardSelect, boards);
+    boardPicker.setBoards(boards);
     if (boards.length > 0) {
       return true;
     }
@@ -137,7 +136,7 @@ async function restoreConversation() {
   try {
     const conversation = await api.getConversation(conversationId);
     state.conversationId = conversation.id;
-    elements.boardSelect.value = conversation.board_id;
+    boardPicker.value = conversation.board_id;
     for (const message of conversation.messages) {
       appendMessage(message);
       if (message.role === "user") {
@@ -248,7 +247,7 @@ async function showBoard(reply) {
 
 /** Draw the whole board, or what one reply's code uses, in the pane; returns both. */
 async function renderBoardPane(reply) {
-  const profile = await loadBoardProfile(elements.boardSelect.value);
+  const profile = await loadBoardProfile(boardPicker.value);
   const wiring = reply
     ? { version: reply.version, usage: await loadPinUsage(reply.messageId) }
     : null;
@@ -343,7 +342,7 @@ async function loadPinUsage(messageId) {
 
 async function ensureConversation() {
   if (!state.conversationId) {
-    const conversation = await api.createConversation(elements.boardSelect.value);
+    const conversation = await api.createConversation(boardPicker.value);
     state.conversationId = conversation.id;
     writeConversationId(conversation.id);
   }
@@ -440,7 +439,7 @@ function updateMotd() {
 function lockControls(locked) {
   const controls = [
     elements.sendButton,
-    elements.boardSelect,
+    boardPicker,
     elements.clearConversationButton,
     elements.showBoardButton,
     elements.boardScopeButton,
