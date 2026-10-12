@@ -1,0 +1,201 @@
+{
+  "id": "arduino-uno-r3",
+  "name": "Arduino UNO R3",
+  "microcontroller": "ATmega328P (8 bits, 16 MHz, 2 KB de RAM)",
+  "language": "C++",
+  "framework": "Arduino (núcleo AVR)",
+  "ide_board": "Arduino Uno",
+  "components": [
+    {
+      "name": "LED embutido",
+      "type": "saída digital",
+      "pins": [{ "gpio": 13 }],
+      "wiring": "Já vem soldado na placa (o LED L); não precisa ligar nada."
+    },
+    {
+      "name": "LED verde",
+      "type": "saída digital",
+      "kind": "led",
+      "pins": [{ "gpio": 5 }],
+      "wiring": "D5 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "LED amarelo",
+      "type": "saída digital",
+      "kind": "led",
+      "pins": [{ "gpio": 6 }],
+      "wiring": "D6 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "LED vermelho",
+      "type": "saída digital",
+      "kind": "led",
+      "pins": [{ "gpio": 9 }],
+      "wiring": "D9 → resistor de 220 Ω → perna longa do LED; perna curta no GND."
+    },
+    {
+      "name": "Botão",
+      "type": "entrada digital com pull-up interno",
+      "kind": "button",
+      "pins": [{ "gpio": 2 }],
+      "wiring": "Um terminal no D2 e o outro no GND; o pull-up interno dispensa resistor."
+    },
+    {
+      "name": "Buzzer",
+      "type": "buzzer passivo, tocado com tone()",
+      "kind": "buzzer",
+      "pins": [{ "gpio": 8 }],
+      "wiring": "Positivo (+) no D8 e negativo (−) no GND."
+    },
+    {
+      "name": "Sensor DHT22",
+      "type": "sensor de temperatura e umidade, digital de um fio",
+      "kind": "dht22",
+      "pins": [{ "gpio": 7 }],
+      "wiring": "VCC no 5V, DATA no D7 com resistor de 10 kΩ para o 5V, GND no GND."
+    },
+    {
+      "name": "Potenciômetro",
+      "type": "entrada analógica (ADC de 10 bits, 0 a 1023)",
+      "kind": "potentiometer",
+      "pins": [{ "gpio": 14 }],
+      "wiring": "Extremidades no 5V e no GND; pino do meio no A0."
+    },
+    {
+      "name": "Display OLED",
+      "type": "SSD1306 128x64, I2C, endereço 0x3C",
+      "kind": "oled",
+      "pins": [
+        { "gpio": 18, "role": "SDA" },
+        { "gpio": 19, "role": "SCL" }
+      ],
+      "wiring": "VCC no 5V, GND no GND, SDA no A4 e SCL no A5."
+    },
+    {
+      "name": "Relé",
+      "type": "módulo relé de 5 V, saída digital ativa em nível alto",
+      "kind": "relay",
+      "pins": [{ "gpio": 4 }],
+      "wiring": "IN no D4, VCC no 5V e GND no GND."
+    }
+  ],
+  "pin_names": {
+    "LED_BUILTIN": 13,
+    "A0": 14,
+    "A1": 15,
+    "A2": 16,
+    "A3": 17,
+    "A4": 18,
+    "A5": 19,
+    "SDA": 18,
+    "SCL": 19
+  },
+  "pin_naming": "label",
+  "supply_pins": { "logic": "5V", "five_volt": "5V", "ground": "GND" },
+  "notes": [
+    "Os pinos digitais funcionam em 5 V e fornecem até 20 mA cada.",
+    "PWM (analogWrite) só nos pinos 3, 5, 6, 9, 10 e 11. O tone() usa o temporizador dos pinos 3 e 11 e desliga o PWM neles.",
+    "As entradas analógicas A0 a A5 leem de 0 a 1023 (10 bits, com referência de 5 V).",
+    "O I2C fica fixo em A4 (SDA) e A5 (SCL): inicie com Wire.begin(), sem argumentos.",
+    "Os pinos 0 e 1 são a serial do USB, usada por Serial; não ligue componentes neles.",
+    "A placa tem só 2 KB de RAM, e o display usa metade: guarde as mensagens fixas do Serial com F(\"...\").",
+    "Use a biblioteca DHT sensor library, da Adafruit, para o DHT22: crie o sensor com DHT dht(pino, DHT22), e readTemperature() já devolve graus Celsius.",
+    "Use as bibliotecas Adafruit SSD1306 e Adafruit GFX para o display.",
+    "O monitor serial usa 9600 baud.",
+    "Se o estudante pedir para trocar um componente de pino, mantenha o nome da constante e use um pino livre: D3, D10, D11, D12, A1, A2 ou A3 (os pinos A também funcionam como digitais)."
+  ],
+  "pinout": {
+    "label": "UNO R3",
+    "caption": "Vista de cima, girada: os pinos digitais à esquerda, a alimentação e as entradas analógicas à direita, e o USB embaixo.",
+    "left": [
+      {
+        "label": "D0",
+        "gpio": 0,
+        "note": "serial do USB",
+        "description": "Ligados ao USB: o monitor serial e a gravação do código usam esses pinos. Evite ligar componentes neles."
+      },
+      {
+        "label": "D1",
+        "gpio": 1,
+        "note": "serial do USB",
+        "description": "Ligados ao USB: o monitor serial e a gravação do código usam esses pinos. Evite ligar componentes neles."
+      },
+      { "label": "D2", "gpio": 2 },
+      { "label": "D3", "gpio": 3 },
+      { "label": "D4", "gpio": 4 },
+      { "label": "D5", "gpio": 5 },
+      { "label": "D6", "gpio": 6 },
+      { "label": "D7", "gpio": 7 },
+      { "label": "D8", "gpio": 8 },
+      { "label": "D9", "gpio": 9 },
+      { "label": "D10", "gpio": 10 },
+      { "label": "D11", "gpio": 11 },
+      { "label": "D12", "gpio": 12 },
+      { "label": "D13", "gpio": 13 },
+      {
+        "label": "GND",
+        "note": "terra (−)",
+        "description": "Terra, o negativo do circuito: todo componente precisa de um fio no GND."
+      },
+      {
+        "label": "AREF",
+        "note": "ref. analógica",
+        "description": "Referência das entradas analógicas; deixe sem ligar."
+      },
+      {
+        "label": "SDA",
+        "note": "I2C = A4",
+        "description": "Repetem os sinais I2C dos pinos A4 (SDA) e A5 (SCL); use um ou outro."
+      },
+      {
+        "label": "SCL",
+        "note": "I2C = A5",
+        "description": "Repetem os sinais I2C dos pinos A4 (SDA) e A5 (SCL); use um ou outro."
+      }
+    ],
+    "right": [
+      { "label": "A5", "gpio": 19 },
+      { "label": "A4", "gpio": 18 },
+      { "label": "A3", "gpio": 17 },
+      { "label": "A2", "gpio": 16 },
+      { "label": "A1", "gpio": 15 },
+      { "label": "A0", "gpio": 14 },
+      {
+        "label": "VIN",
+        "note": "entrada 7–12 V",
+        "description": "Entrada da fonte externa, de 7 a 12 V, a mesma do conector de energia; não alimente componentes por aqui."
+      },
+      {
+        "label": "GND",
+        "note": "terra (−)",
+        "description": "Terra, o negativo do circuito: todo componente precisa de um fio no GND."
+      },
+      {
+        "label": "GND",
+        "note": "terra (−)",
+        "description": "Terra, o negativo do circuito: todo componente precisa de um fio no GND."
+      },
+      {
+        "label": "5V",
+        "note": "5 V",
+        "description": "Saída de 5 V: alimenta sensores, o display e o relé. É a tensão dos pinos digitais."
+      },
+      {
+        "label": "3V3",
+        "note": "3,3 V",
+        "description": "Saída de 3,3 V para módulos que não aceitam 5 V; fornece no máximo 50 mA."
+      },
+      {
+        "label": "RESET",
+        "note": "reset",
+        "description": "Reinicia a placa quando é ligado ao GND, como o botão de reset."
+      },
+      {
+        "label": "IOREF",
+        "note": "nível lógico",
+        "description": "Informa aos shields a tensão dos pinos (5 V); não ligue componentes."
+      },
+      { "label": "NC" }
+    ]
+  }
+}
