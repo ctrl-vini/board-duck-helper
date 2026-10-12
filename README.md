@@ -2,11 +2,11 @@
 
 ![Duckoder](docs/banner.svg)
 
-Web platform that generates code for teaching boards, starting with the ESP32, using a language
-model that runs locally through [Ollama](https://ollama.com). The student picks a board, explains
-to a rubber duck what the board should do, and gets code ready to paste into the IDE, which can be
-refined in the same conversation. It works entirely on the local network: no internet access or
-paid service is required while it is in use.
+Web platform that generates code for teaching boards, such as the ESP32 and the Arduino Uno, Mega
+and Nano, using a language model that runs locally through [Ollama](https://ollama.com). The student
+picks a board, explains to a rubber duck what the board should do, and gets code ready to paste into
+the IDE, which can be refined in the same conversation. It works entirely on the local network: no
+internet access or paid service is required while it is in use.
 
 Duckoder is the subject of my undergraduate thesis (TCC); the thesis itself is in
 [ctrl-vini/rdc-tcc](https://github.com/ctrl-vini/rdc-tcc).
@@ -114,6 +114,7 @@ All settings are environment variables with defaults, so nothing needs to be set
 | `APP_LLM_CONTEXT_SIZE` | `8192` | Context window in tokens; Ollama silently drops what exceeds it |
 | `APP_LLM_KEEP_ALIVE` | `30m` | How long Ollama keeps the model loaded after the last request |
 | `APP_BOARDS_DIR` | `data/boards` | Folder with the board profiles |
+| `APP_DEFAULT_BOARD` | `esp32` | Board listed first, so the page opens with it selected |
 | `APP_CONVERSATIONS_DIR` | `data/conversations` | Folder where each conversation is saved as JSON |
 
 Example: `APP_OLLAMA_MODEL=llama3.1:8b python server.py`.
@@ -150,9 +151,11 @@ pick.
 
 ## Adding a board
 
-Each board is described by one JSON file in `data/boards/`. To add a board, copy `esp32.json`,
-give it a new `id` and restart the server. Invalid files stop the server at startup with a
-message naming the file.
+Each board is described by one JSON file in `data/boards/`. The project ships the ESP32 DevKit V1,
+the Arduino UNO R3, the Arduino UNO R4 (one profile for the Minima and the WiFi), the Arduino Mega
+2560 and the classic Arduino Nano, all with the same kit of components. To add a board, copy the
+profile closest to it, give it a new `id` and restart the server. Invalid files stop the server at
+startup with a message naming the file.
 
 | Field | Content |
 | --- | --- |
@@ -162,18 +165,20 @@ message naming the file.
 | `ide_board` | Optional board to pick in the Arduino IDE, shown in the board view; the wrong one can leave names such as `LED_BUILTIN` undefined |
 | `components` | What is wired to the board: `name`, `type`, `pins`, an optional `wiring` text and an optional `kind` for its drawing |
 | `notes` | Usage restrictions and libraries the model must respect |
-| `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists |
+| `pinout` | Optional header layout for the board view: `caption`, `left` and `right` pin lists, and a `label` of up to 8 characters drawn on the board |
+| `pin_naming` | How the interface names a pin: `gpio` for "GPIO 13", the default, or `label` for the header label, such as "D13" on an Arduino |
+| `supply_pins` | Optional header labels the component drawings take power from: `logic`, `five_volt` and `ground`, such as `3V3`, `VIN` and `GND` on the ESP32 |
 | `pin_names` | Optional names the board's Arduino core gives to some pins, such as `LED_BUILTIN`, `SDA` and `SCL`, used to find the pins in generated code |
 
-Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`. Each header
-pin has a `label` and, when it is a GPIO, its `gpio` number; the pins nearly every circuit uses,
-such as GND and 3V3, also get a short `note` drawn beside them and a `description` of what they
-are for, which the board view shows before any code. A profile whose components use a GPIO
-missing from its pinout is rejected. The `kind` is one of `led`, `button`, `buzzer`,
-`dht22`, `potentiometer`, `oled` and `relay`, each with its own drawing in
-`static/js/components/componentDrawing.js`, whose power legs go to the ESP32 DevKit's `3V3`,
-`GND` and `VIN` pins; a component without a kind, such as a built-in LED, shows only its wiring
-text. For example:
+Each pin of a component has a `gpio` number and an optional `role`, such as `SDA`; on an Arduino,
+the number is the one the code uses, so A0 is 14 on the Uno and 54 on the Mega. Each header pin has
+a `label` and, when it is a GPIO, its `gpio` number; the pins nearly every circuit uses, such as GND
+and 3V3, also get a short `note` drawn beside them and a `description` of what they are for, which
+the board view shows before any code. A profile whose components use a GPIO missing from its pinout
+is rejected, and so is one whose `supply_pins` are missing from it. The `kind` is one of `led`,
+`button`, `buzzer`, `dht22`, `potentiometer`, `oled` and `relay`, each with its own drawing in
+`static/js/components/componentDrawing.js`, whose power legs go to the profile's `supply_pins`; a
+component without a kind, such as a built-in LED, shows only its wiring text. For example:
 
 ```json
 {
@@ -185,11 +190,11 @@ text. For example:
 }
 ```
 
-The profile is sent to the model as context without `pinout`, `ide_board`, `pin_names`, the kinds
-and the `wiring` texts: those are for the student and for reading the code, and leaving them out
-keeps the prompt shorter. The `notes` do go to the model: they are where the profile tells it how
-to use the board's libraries and core, such as which calls exist for PWM. The texts the student
-reads are in Brazilian Portuguese.
+The profile is sent to the model as context without `pinout`, `ide_board`, `pin_names`,
+`pin_naming`, `supply_pins`, the kinds and the `wiring` texts: those are for the student and for
+reading the code, and leaving them out keeps the prompt shorter. The `notes` do go to the model:
+they are where the profile tells it how to use the board's libraries and core, such as which calls
+exist for PWM. The texts the student reads are in Brazilian Portuguese.
 
 ## Development checks
 
