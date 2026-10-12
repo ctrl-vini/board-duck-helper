@@ -6,6 +6,11 @@ from dataclasses import dataclass
 # Opening fence with an optional language tag, the code, then the closing fence.
 CODE_BLOCK_PATTERN = re.compile(r"```[^\n]*\n(.*?)\n?```", re.DOTALL)
 PARAGRAPH_SEPARATOR = "\n\n"
+# The prompt asks for plain prose, but models still open the text with "Explicação:" or
+# "**Explicação:**"; the interface already presents it as the duck's explanation.
+EXPLANATION_LABEL = re.compile(
+    r"^\*{0,2}(?:explica[çc][ãa]o|explanation)\*{0,2}\s*:\s*\*{0,2}\s*", re.IGNORECASE
+)
 
 
 @dataclass(frozen=True)
@@ -20,7 +25,7 @@ def parse_response(text: str) -> ParsedResponse:
     """Take the first fenced code block as the code and everything around it as the explanation."""
     match = CODE_BLOCK_PATTERN.search(text)
     if match is None:
-        return ParsedResponse(code="", explanation=text.strip())
+        return ParsedResponse(code="", explanation=_join_paragraphs(text))
 
     explanation = _join_paragraphs(text[: match.start()], text[match.end() :])
     return ParsedResponse(code=_strip_trailing_spaces(match.group(1)), explanation=explanation)
@@ -32,4 +37,5 @@ def _strip_trailing_spaces(code: str) -> str:
 
 
 def _join_paragraphs(*parts: str) -> str:
-    return PARAGRAPH_SEPARATOR.join(part.strip() for part in parts if part.strip())
+    paragraphs = (EXPLANATION_LABEL.sub("", part.strip()) for part in parts)
+    return PARAGRAPH_SEPARATOR.join(paragraph for paragraph in paragraphs if paragraph)

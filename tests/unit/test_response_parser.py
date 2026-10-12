@@ -48,3 +48,21 @@ def test_removes_spaces_left_at_the_end_of_lines() -> None:
     parsed = parse_response("```cpp\nvoid setup() {   \n  pinMode(2, OUTPUT); \n}\n```")
 
     assert parsed.code == "void setup() {\n  pinMode(2, OUTPUT);\n}"
+
+
+def test_drops_an_explanation_label() -> None:
+    parsed = parse_response("```cpp\nvoid setup() {}\n```\nExplicação: Neste código, o LED pisca.")
+
+    assert parsed.explanation == "Neste código, o LED pisca."
+
+
+def test_drops_a_bold_explanation_label() -> None:
+    parsed = parse_response("```cpp\nvoid setup() {}\n```\n**Explicação:** O LED pisca.")
+
+    assert parsed.explanation == "O LED pisca."
+
+
+def test_keeps_the_word_explanation_inside_the_text() -> None:
+    parsed = parse_response("```cpp\nvoid setup() {}\n```\nA explicação: o LED pisca.")
+
+    assert parsed.explanation == "A explicação: o LED pisca."
