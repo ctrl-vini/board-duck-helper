@@ -24,6 +24,10 @@ const elements = {
   boardSelect: document.getElementById("board-select"),
   clearConversationButton: document.getElementById("clear-conversation"),
   showBoardButton: document.getElementById("show-board"),
+  boardPane: document.getElementById("board-pane"),
+  boardPaneCommand: document.getElementById("board-pane-command"),
+  boardPaneBody: document.getElementById("board-pane-body"),
+  closeBoardButton: document.getElementById("close-board"),
   motd: document.getElementById("motd"),
   lines: document.getElementById("lines"),
   promptForm: document.getElementById("prompt-form"),
@@ -48,6 +52,8 @@ async function init() {
   applyStaticTexts();
   bindShortcuts();
   elements.promptLabel.append(renderPromptText());
+  elements.boardPaneCommand.append(renderPromptText(), ` ${UI_TEXT.pinoutCommand}`);
+  elements.boardPane.setAttribute("aria-label", UI_TEXT.boardPaneLabel);
   renderMotd(elements.motd, useExample);
   duck.speak("listening", UI_TEXT.duck.listening);
 
@@ -55,8 +61,9 @@ async function init() {
   elements.requestInput.addEventListener("keydown", submitOnEnter);
   elements.requestInput.addEventListener("input", () => fitToContent(elements.requestInput));
   elements.clearConversationButton.addEventListener("click", askToClearConversation);
-  elements.showBoardButton.addEventListener("click", showBoard);
-  elements.boardSelect.addEventListener("change", startNewConversation);
+  elements.showBoardButton.addEventListener("click", toggleBoardPane);
+  elements.closeBoardButton.addEventListener("click", closeBoardPane);
+  elements.boardSelect.addEventListener("change", changeBoard);
 
   if (await loadBoards()) {
     await restoreConversation();
@@ -152,7 +159,7 @@ async function runLocalCommand(content) {
   const command = content.toLowerCase();
   if (command === UI_TEXT.pinoutCommand) {
     setRequestText("");
-    await showBoard();
+    await openBoardPane();
     return true;
   }
   if (UI_TEXT.clearCommands.includes(command)) {
@@ -163,19 +170,53 @@ async function runLocalCommand(content) {
   return false;
 }
 
-/** Print the board drawing and wiring guide; it is local output, not part of the conversation. */
-async function showBoard() {
+/**
+ * Show the board drawing and wiring guide in a pane beside the conversation, like a terminal
+ * split, so the pins stay in view while the student reads the code.
+ */
+async function openBoardPane() {
   clearErrors();
-  appendToTranscript(renderCommandLine(UI_TEXT.pinoutCommand));
   try {
     const profile = await loadBoardProfile(elements.boardSelect.value);
-    appendToTranscript(renderBoardView(profile), "start");
+    elements.boardPaneBody.replaceChildren(renderBoardView(profile));
+    elements.boardPaneBody.scrollTop = 0;
+    setBoardPaneOpen(true);
     duck.speak("happy", UI_TEXT.duck.board);
   } catch (error) {
     showError(errorMessageFor(error));
     duck.speak("confused", UI_TEXT.duck.confused);
   }
   elements.requestInput.focus();
+}
+
+function closeBoardPane() {
+  setBoardPaneOpen(false);
+  elements.requestInput.focus();
+}
+
+function toggleBoardPane() {
+  if (isBoardPaneOpen()) {
+    closeBoardPane();
+  } else {
+    openBoardPane();
+  }
+}
+
+function setBoardPaneOpen(open) {
+  elements.boardPane.hidden = !open;
+  elements.showBoardButton.setAttribute("aria-expanded", String(open));
+}
+
+function isBoardPaneOpen() {
+  return !elements.boardPane.hidden;
+}
+
+/** A conversation belongs to one board: picking another starts over, and an open pane follows. */
+function changeBoard() {
+  startNewConversation();
+  if (isBoardPaneOpen()) {
+    openBoardPane();
+  }
 }
 
 async function loadBoardProfile(boardId) {

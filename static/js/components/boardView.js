@@ -13,23 +13,23 @@ const SIDE_DECORATION_WIDTH = 1 + LEFT_WIRE.length + 1 + 1 + 1;
 
 /** What the student needs to wire the board: the drawing, the connections and the notes. */
 export function renderBoardView(profile) {
-  const line = createElement("li", "line line--board");
-  line.append(createElement("p", "board-view__title", profile.name));
-  line.append(createElement("p", "line__meta", `${UI_TEXT.commentPrefix} ${profile.microcontroller}`));
+  const view = createElement("div", "board-view");
+  view.append(createElement("p", "board-view__title", profile.name));
+  view.append(renderComment(profile.microcontroller));
 
   if (profile.pinout) {
-    line.append(renderDiagram(profile.pinout, profile.components));
+    view.append(renderDiagram(profile.pinout, profile.components));
     if (profile.pinout.caption) {
-      line.append(renderComment(profile.pinout.caption));
+      view.append(renderComment(profile.pinout.caption));
     }
   } else {
-    line.append(renderComment(UI_TEXT.noPinout));
+    view.append(renderComment(UI_TEXT.noPinout));
   }
-  line.append(renderWiringTable(profile.components));
+  view.append(renderWiringTable(profile.components));
   for (const note of profile.notes) {
-    line.append(renderComment(note));
+    view.append(renderComment(note));
   }
-  return line;
+  return view;
 }
 
 /**

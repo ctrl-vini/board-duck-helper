@@ -60,10 +60,12 @@ debugging:
   refinement that comes back with the same code as the previous version is flagged.
 - The duck talks while its message is typed out, and its face shows whether it is listening,
   thinking, happy or confused. Animations stop when the system asks for reduced motion.
-- `[ ver placa ]` (Ctrl + P, or Cmd + P on a Mac), or typing `pinout` at the prompt, prints the
-  board: a diagram of the header pins with the ones in use highlighted, and a table with each
-  component, its pins and how to wire it. This command runs in the page and is not sent to the
-  model.
+- `[ ver placa ]` (Ctrl + P, or Cmd + P on a Mac), or typing `pinout` at the prompt, opens the
+  board in a pane beside the conversation, like a split terminal: a diagram of the header pins
+  with the ones in use highlighted, and a table with each component, its pins and how to wire
+  it. The pins stay in view while the student reads the code; the duck shrinks to one line to
+  make room. On small screens the pane takes the whole screen until `[ fechar ]`. This command
+  runs in the page and is not sent to the model.
 - Picking a board and sending a request starts a conversation; its id goes into the page address
   (`/?conversation=<id>`), so reloading or sharing the link reopens it.
 - `[ limpar conversa ]` (Ctrl + L or Cmd + L), or typing a usual clear-screen command (`clear`,
@@ -173,7 +175,7 @@ git push origin master --tags
 With Ollama and the server running, from another device on the same network:
 
 1. Open the address from the server log; the board list loads.
-2. Run `pinout`: the diagram and the wiring table appear.
+2. Run `pinout`: the diagram and the wiring table open in a pane beside the conversation.
 3. Send "Pisque o LED embutido a cada segundo"; the code appears as "versão 1".
 4. Ask for a change, such as "Tire os comentários do código"; "versão 2" applies it.
 5. Reload the page; the conversation comes back from the address.

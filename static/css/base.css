@@ -42,6 +42,8 @@
   --space-6: 1.5rem;
 
   --transcript-width: 88ch;
+  /* Wide enough for the ESP32 drawing with its component labels. */
+  --board-pane-width: 72ch;
   --control-height: 2.25rem;
 }
 

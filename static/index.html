@@ -18,30 +18,60 @@
       <button type="button" id="clear-conversation" class="terminal-button" data-shortcut="l">
         <span data-text="clearConversation"></span>
       </button>
-      <button type="button" id="show-board" class="terminal-button" data-shortcut="p">
+      <button
+        type="button"
+        id="show-board"
+        class="terminal-button"
+        data-shortcut="p"
+        aria-controls="board-pane"
+        aria-expanded="false"
+      >
         <span data-text="showBoard"></span>
       </button>
     </header>
 
-    <main class="workspace">
-      <div class="transcript" id="transcript">
-        <section class="motd" id="motd"></section>
-        <ol class="lines" id="lines" aria-live="polite"></ol>
-      </div>
-      <aside class="duck" id="duck" data-mood="listening"></aside>
-    </main>
+    <!-- Split like a terminal: the conversation, and the board pane beside it when open. -->
+    <div class="panes">
+      <div class="pane pane--conversation">
+        <main class="workspace">
+          <div class="transcript" id="transcript">
+            <section class="motd" id="motd"></section>
+            <ol class="lines" id="lines" aria-live="polite"></ol>
+          </div>
+          <aside class="duck" id="duck" data-mood="listening"></aside>
+        </main>
 
-    <form class="prompt" id="prompt-form">
-      <div class="prompt__line">
-        <span class="prompt__label" id="prompt-label" aria-hidden="true"></span>
-        <label class="visually-hidden" for="request" data-text="requestLabel"></label>
-        <textarea id="request" class="prompt__input" rows="1" maxlength="4000"></textarea>
+        <form class="prompt" id="prompt-form">
+          <div class="prompt__line">
+            <span class="prompt__label" id="prompt-label" aria-hidden="true"></span>
+            <label class="visually-hidden" for="request" data-text="requestLabel"></label>
+            <textarea id="request" class="prompt__input" rows="1" maxlength="4000"></textarea>
+          </div>
+          <div class="prompt__actions">
+            <span class="prompt__hint" data-text="sendHint"></span>
+            <button
+              type="submit"
+              id="send"
+              class="terminal-button terminal-button--accent"
+              data-text="send"
+            ></button>
+          </div>
+        </form>
       </div>
-      <div class="prompt__actions">
-        <span class="prompt__hint" data-text="sendHint"></span>
-        <button type="submit" id="send" class="terminal-button terminal-button--accent" data-text="send"></button>
-      </div>
-    </form>
+
+      <section class="pane pane--board" id="board-pane" hidden>
+        <div class="pane__header">
+          <p class="pane__command" id="board-pane-command"></p>
+          <button
+            type="button"
+            id="close-board"
+            class="terminal-button"
+            data-text="closeBoard"
+          ></button>
+        </div>
+        <div class="pane__body" id="board-pane-body"></div>
+      </section>
+    </div>
 
     <dialog class="confirm-dialog" id="clear-dialog" aria-labelledby="clear-dialog-title">
       <form method="dialog" class="confirm-dialog__form">

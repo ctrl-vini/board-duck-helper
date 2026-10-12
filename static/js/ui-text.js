@@ -6,6 +6,8 @@ export const UI_TEXT = {
   boardLabel: "placa:",
   clearConversation: "limpar conversa",
   showBoard: "ver placa",
+  closeBoard: "fechar",
+  boardPaneLabel: "Placa e ligações",
   pinoutCommand: "pinout",
   // Clear-screen commands students may know: Unix shells, Windows cmd and PowerShell, MATLAB.
   clearCommands: ["clear", "reset", "cls", "clear-host", "clc"],
@@ -58,7 +60,7 @@ export const UI_TEXT = {
     unchanged: (version) =>
       `Hmm, o código saiu igual à versão ${version}. Tenta pedir de outro jeito?`,
     confused: "Quack?! Algo deu errado. Olha a mensagem de erro.",
-    board: "Essa é a placa. Os pinos em amarelo já têm componente ligado.",
+    board: "Abri a placa num painel. Os pinos em amarelo já têm componente ligado.",
   },
   conversationNotFound: "a conversa do link não existe mais; comece uma nova conversa",
   noBoards: "nenhuma placa cadastrada no servidor; adicione um perfil em data/boards e reinicie",
