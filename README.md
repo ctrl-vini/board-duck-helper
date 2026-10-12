@@ -1,10 +1,15 @@
-# Duckoder
+<h1 align="center">
+  <img src="docs/banner.svg" alt="Duckoder" width="760">
+</h1>
 
 Web platform that generates code for teaching boards, starting with the ESP32, using a language
 model that runs locally through [Ollama](https://ollama.com). The student picks a board, explains
 to a rubber duck what the board should do, and gets code ready to paste into the IDE, which can be
 refined in the same conversation. It works entirely on the local network: no internet access or
 paid service is required while it is in use.
+
+Duckoder is the subject of my undergraduate thesis (TCC); the thesis itself is in
+[ctrl-vini/rdc-tcc](https://github.com/ctrl-vini/rdc-tcc).
 
 ## Requirements
 
