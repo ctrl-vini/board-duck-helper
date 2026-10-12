@@ -23,7 +23,12 @@ def parse_response(text: str) -> ParsedResponse:
         return ParsedResponse(code="", explanation=text.strip())
 
     explanation = _join_paragraphs(text[: match.start()], text[match.end() :])
-    return ParsedResponse(code=match.group(1).rstrip(), explanation=explanation)
+    return ParsedResponse(code=_strip_trailing_spaces(match.group(1)), explanation=explanation)
+
+
+def _strip_trailing_spaces(code: str) -> str:
+    # Removing comments often leaves spaces at the end of the lines they were on.
+    return "\n".join(line.rstrip() for line in code.rstrip().splitlines())
 
 
 def _join_paragraphs(*parts: str) -> str:

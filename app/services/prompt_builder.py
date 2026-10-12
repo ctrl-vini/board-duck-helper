@@ -11,7 +11,7 @@ from app.schemas.board import BoardProfile
 SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "system_prompt.txt"
 # Stored with every reply so each generated code can be traced to the prompt that produced it.
 # Bump it whenever system_prompt.txt changes.
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v3"
 
 
 class PromptBuilder:

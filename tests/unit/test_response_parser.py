@@ -42,3 +42,9 @@ def test_only_the_first_block_is_taken_as_code() -> None:
 
     assert parsed.code == "first();"
     assert "second();" in parsed.explanation
+
+
+def test_removes_spaces_left_at_the_end_of_lines() -> None:
+    parsed = parse_response("```cpp\nvoid setup() {   \n  pinMode(2, OUTPUT); \n}\n```")
+
+    assert parsed.code == "void setup() {\n  pinMode(2, OUTPUT);\n}"
