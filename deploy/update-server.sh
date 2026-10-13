@@ -1,7 +1,7 @@
 #!/bin/sh
 # Updates the Duckoder server to one version. The deploy workflow sends it to the EC2 instance
 # through Systems Manager, which runs it as root after setting TAG, IMAGE, REGISTRY and REPOSITORY,
-# and DOMAIN when the site has one.
+# and DOMAIN when the site has one. The model runs on the instance's NVIDIA GPU when it has one.
 set -eu
 
 APP_DIR=/opt/duckoder
@@ -36,6 +36,9 @@ fetch compose.yaml
 touch .env
 set_env DUCKODER_IMAGE "$IMAGE"
 
+# The Compose files this server combines, which Compose reads from COMPOSE_FILE in .env.
+files=compose.yaml
+
 # With a domain, Caddy serves the site over HTTPS on ports 80 and 443, from compose.proxy.yaml;
 # without one, the web server answers on port 8000.
 # The bare domain, also when the variable was given with www.
@@ -43,12 +46,21 @@ domain=${DOMAIN:-}
 domain=${domain#www.}
 if [ -n "$domain" ]; then
     fetch compose.proxy.yaml
-    set_env COMPOSE_FILE compose.yaml:compose.proxy.yaml
+    files="$files:compose.proxy.yaml"
 else
     rm -f compose.proxy.yaml
-    set_env COMPOSE_FILE ""
 fi
 set_env DUCKODER_DOMAIN "$domain"
+
+# On an instance with an NVIDIA GPU, Ollama runs the model on it, from compose.gpu.yaml.
+if nvidia-smi -L > /dev/null 2>&1; then
+    echo "Running the model on $(nvidia-smi -L | head -n 1)"
+    fetch compose.gpu.yaml
+    files="$files:compose.gpu.yaml"
+else
+    rm -f compose.gpu.yaml
+fi
+set_env COMPOSE_FILE "$files"
 
 docker compose pull --quiet
 # The first start waits for the model download, several minutes, before starting the server.
