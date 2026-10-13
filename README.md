@@ -288,6 +288,13 @@ The server keeps its files in `/opt/duckoder`, where settings such as `APP_OLLAM
 `.env`. `deploy/update-server.sh`, which the workflow sends to it, reads `compose.yaml` from this
 public repository at the version's tag.
 
+To serve the site at a domain over HTTPS, without the port, point the domain's A records for
+`www` and for the bare domain at an Elastic IP associated with the instance, open TCP ports 80 and
+443 in its security group, and add the variable `DUCKODER_DOMAIN`, such as `duckoder.com.br`. The
+next deploy adds `compose.proxy.yaml`: Caddy gets the Let's Encrypt certificate, serves
+`https://www.<domain>`, sends the bare domain there, and port 8000 is no longer published, so it
+can be closed. Removing the variable turns this off at the next deploy.
+
 ## Manual end-to-end check
 
 With Ollama and the server running, from another device on the same network:

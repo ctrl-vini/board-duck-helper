@@ -3,7 +3,8 @@ name: Deploy
 # Builds a version's image, pushes it to Amazon ECR and updates the EC2 server through Systems
 # Manager. The release workflow calls it after publishing each version; to deploy one by hand,
 # run it from the Actions tab with the version's tag picked in "Use workflow from". The AWS setup,
-# the AWS_ROLE_ARN secret and the AWS_REGION and EC2_INSTANCE_ID variables are in the README.
+# the AWS_ROLE_ARN secret and the AWS_REGION and EC2_INSTANCE_ID variables are in the README, as
+# is the optional DUCKODER_DOMAIN variable, which serves the site over HTTPS at that domain.
 on:
   workflow_call:
   workflow_dispatch:
@@ -26,6 +27,7 @@ jobs:
     env:
       TAG: ${{ github.ref_name }}
       INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+      DOMAIN: ${{ vars.DUCKODER_DOMAIN }}
     steps:
       - name: Check that a version tag was picked
         if: github.ref_type != 'tag'
@@ -66,9 +68,10 @@ jobs:
         run: |
           jq -n --rawfile script deploy/update-server.sh \
             --arg tag "$TAG" --arg registry "$REGISTRY" --arg repository "$GITHUB_REPOSITORY" \
+            --arg domain "$DOMAIN" \
             '{
               commands: [
-                "export TAG=\($tag) IMAGE=\($registry)/duckoder:\($tag) REGISTRY=\($registry) REPOSITORY=\($repository)",
+                "export TAG=\($tag) IMAGE=\($registry)/duckoder:\($tag) REGISTRY=\($registry) REPOSITORY=\($repository) DOMAIN=\($domain)",
                 $script
               ],
               executionTimeout: ["3600"]
@@ -100,4 +103,16 @@ jobs:
           if [ "$status" != Success ]; then
             echo "::error::The server update ended as $status."
             exit 1
+          fi
+
+      - name: Check the site
+        if: env.DOMAIN != ''
+        run: |
+          url="https://www.${DOMAIN#www.}/version"
+          # Caddy asks Let's Encrypt for the certificate in the first seconds after starting.
+          if curl -fsS --retry 10 --retry-delay 6 --retry-all-errors "$url"; then
+            echo
+            echo "The site answers at $url."
+          else
+            echo "::warning::$url does not answer yet: check the domain's DNS records and that ports 80 and 443 are open."
           fi

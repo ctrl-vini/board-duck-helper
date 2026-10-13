@@ -1,0 +1,40 @@
+# HTTPS in front of the web server, for a server with a domain. Caddy gets and renews the
+# Let's Encrypt certificate by itself, serves www.<domain> on ports 80 and 443, and sends the bare
+# domain to www. The deploy workflow adds this file when the DUCKODER_DOMAIN variable is set; by
+# hand: DUCKODER_DOMAIN=duckoder.com.br docker compose -f compose.yaml -f compose.proxy.yaml up -d
+services:
+  app:
+    # Reached only through the proxy, on the containers' network.
+    ports: !reset []
+
+  proxy:
+    image: caddy:2.11.7
+    ports:
+      - "80:80"
+      - "443:443"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      # The certificates, kept across restarts so Let's Encrypt is not asked for them again.
+      - certificates:/data
+      - proxy-config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
+configs:
+  caddyfile:
+    content: |
+      www.${DUCKODER_DOMAIN:?set DUCKODER_DOMAIN to the domain, such as duckoder.com.br} {
+        encode zstd gzip
+        reverse_proxy app:8000
+      }
+
+      ${DUCKODER_DOMAIN} {
+        redir https://www.${DUCKODER_DOMAIN}{uri} permanent
+      }
+
+volumes:
+  certificates:
+  proxy-config:

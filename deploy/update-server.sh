@@ -1,11 +1,26 @@
 #!/bin/sh
 # Updates the Duckoder server to one version. The deploy workflow sends it to the EC2 instance
-# through Systems Manager, which runs it as root after setting TAG, IMAGE, REGISTRY and REPOSITORY.
+# through Systems Manager, which runs it as root after setting TAG, IMAGE, REGISTRY and REPOSITORY,
+# and DOMAIN when the site has one.
 set -eu
 
 APP_DIR=/opt/duckoder
 # How long the new web server may take to report healthy once its container starts.
 HEALTHY_TIMEOUT_S=120
+
+# Downloads one of the files of this version from the public repository.
+fetch() {
+    curl -fsSL "https://raw.githubusercontent.com/$REPOSITORY/$TAG/$1" -o "$1"
+}
+
+# Sets a line of .env, which Compose reads in this folder, or removes it when the value is empty.
+# Other settings added to .env, such as APP_OLLAMA_MODEL, are kept.
+set_env() {
+    sed -i "/^$1=/d" .env
+    if [ -n "$2" ]; then
+        echo "$1=$2" >> .env
+    fi
+}
 
 mkdir -p "$APP_DIR"
 cd "$APP_DIR"
@@ -16,16 +31,28 @@ export DOCKER_CONFIG=/root/.docker
 mkdir -p "$DOCKER_CONFIG"
 printf '{ "credHelpers": { "%s": "ecr-login" } }\n' "$REGISTRY" > "$DOCKER_CONFIG/config.json"
 
-# The services as the version describes them, read from the public repository, and that
-# version's image for the web server. Other settings added to .env, such as APP_OLLAMA_MODEL,
-# are kept.
-curl -fsSL "https://raw.githubusercontent.com/$REPOSITORY/$TAG/compose.yaml" -o compose.yaml
+# The services as the version describes them, and that version's image for the web server.
+fetch compose.yaml
 touch .env
-sed -i '/^DUCKODER_IMAGE=/d' .env
-echo "DUCKODER_IMAGE=$IMAGE" >> .env
+set_env DUCKODER_IMAGE "$IMAGE"
+
+# With a domain, Caddy serves the site over HTTPS on ports 80 and 443, from compose.proxy.yaml;
+# without one, the web server answers on port 8000.
+# The bare domain, also when the variable was given with www.
+domain=${DOMAIN:-}
+domain=${domain#www.}
+if [ -n "$domain" ]; then
+    fetch compose.proxy.yaml
+    set_env COMPOSE_FILE compose.yaml:compose.proxy.yaml
+else
+    rm -f compose.proxy.yaml
+    set_env COMPOSE_FILE ""
+fi
+set_env DUCKODER_DOMAIN "$domain"
 
 docker compose pull --quiet
 # The first start waits for the model download, several minutes, before starting the server.
+# Turning the domain off leaves the proxy out of the services, so it is removed as an orphan.
 docker compose up -d --no-build --remove-orphans
 
 container=$(docker compose ps -q app)
