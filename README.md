@@ -295,6 +295,13 @@ next deploy adds `compose.proxy.yaml`: Caddy gets the Let's Encrypt certificate,
 `https://www.<domain>`, sends the bare domain there, and port 8000 is no longer published, so it
 can be closed. Removing the variable turns this off at the next deploy.
 
+On a CPU each reply takes minutes; with an NVIDIA GPU it takes seconds. For a GPU, launch the
+instance with the Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04), which brings the
+drivers and Docker's GPU support, on an instance such as a `g4dn.xlarge`, with the same user data.
+New AWS accounts can run no G instances until the "Running On-Demand G and VT instances" quota is
+raised in Service Quotas, to 4 vCPUs for a `g4dn.xlarge`. The deploy finds the GPU with
+`nvidia-smi` and adds `compose.gpu.yaml`, so Ollama runs the model on it.
+
 ## Manual end-to-end check
 
 With Ollama and the server running, from another device on the same network:
