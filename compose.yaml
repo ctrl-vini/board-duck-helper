@@ -6,7 +6,9 @@ name: duckoder
 services:
   app:
     build: .
-    image: duckoder
+    # The image the deploy workflow publishes for each version, on the server; built here
+    # otherwise.
+    image: ${DUCKODER_IMAGE:-duckoder}
     ports:
       - "8000:8000"
     environment:

@@ -247,8 +247,9 @@ The tests replace Ollama with a fake model, so they need neither Ollama nor a ne
 - `.github/workflows/ci.yml` runs the development checks on Python 3.11 and 3.12 for every pull
   request and every push to `master`.
 - `.github/workflows/release.yml` runs when a version tag is pushed. It runs the same checks,
-  confirms that the tag matches `APP_VERSION` in `app/main.py`, and publishes a GitHub release
-  with generated notes and a `duckoder-<tag>.zip` archive of the source.
+  confirms that the tag matches `APP_VERSION` in `app/main.py`, publishes a GitHub release with
+  generated notes and a `duckoder-<tag>.zip` archive of the source, and then deploys the version
+  to AWS once that is set up.
 
 To publish a version, update `APP_VERSION`, commit, then tag and push the branch and the tag
 separately, so the tag push starts the release:
@@ -258,6 +259,34 @@ git tag v1.0.0
 git push origin master
 git push origin v1.0.0
 ```
+
+## Deploying to AWS
+
+Once set up, each release also runs `.github/workflows/deploy.yml`. It builds the image for Intel
+and Arm, pushes it to Amazon ECR and has Systems Manager update an EC2 instance, which runs
+`compose.yaml` with that image. GitHub signs in to AWS with OpenID Connect, so no access key is
+stored, and the instance needs no SSH. The deploy is skipped until the `AWS_REGION` variable
+exists; to deploy a version again, run the workflow from the Actions tab with its tag picked.
+
+One-time setup, all in the region the instance runs in:
+
+1. ECR: a private repository named `duckoder`.
+2. IAM: an OpenID Connect identity provider for `https://token.actions.githubusercontent.com`,
+   with the audience `sts.amazonaws.com`.
+3. IAM: a role for EC2 with the managed policies `AmazonSSMManagedInstanceCore` and
+   `AmazonEC2ContainerRegistryReadOnly`.
+4. EC2: an Ubuntu Server 24.04 LTS instance with at least 16 GB of memory, such as a
+   `t4g.xlarge`, a 30 GB disk, that role, a security group open only on TCP port 8000, and
+   `deploy/ec2-user-data.sh` as its user data.
+5. IAM: a role for GitHub Actions with the trust policy in `deploy/github-trust-policy.json` and
+   the permissions in `deploy/github-permissions-policy.json`, with `ACCOUNT_ID`, `REGION` and
+   `INSTANCE_ID` replaced.
+6. GitHub, in Settings > Secrets and variables > Actions: the secret `AWS_ROLE_ARN`, with the ARN
+   of that role, and the variables `AWS_REGION` and `EC2_INSTANCE_ID`.
+
+The server keeps its files in `/opt/duckoder`, where settings such as `APP_OLLAMA_MODEL` go in
+`.env`. `deploy/update-server.sh`, which the workflow sends to it, reads `compose.yaml` from this
+public repository at the version's tag.
 
 ## Manual end-to-end check
 

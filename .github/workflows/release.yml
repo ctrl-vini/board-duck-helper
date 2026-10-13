@@ -40,3 +40,14 @@ jobs:
           --title "Duckoder $TAG"
           --generate-notes
           --verify-tag
+
+  deploy:
+    name: Deploy
+    needs: release
+    # Skipped until the AWS deployment is set up, as described in the README.
+    if: vars.AWS_REGION != ''
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      id-token: write
+    secrets: inherit
