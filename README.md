@@ -250,11 +250,13 @@ The tests replace Ollama with a fake model, so they need neither Ollama nor a ne
   confirms that the tag matches `APP_VERSION` in `app/main.py`, and publishes a GitHub release
   with generated notes and a `duckoder-<tag>.zip` archive of the source.
 
-To publish a version, update `APP_VERSION`, commit, then tag and push:
+To publish a version, update `APP_VERSION`, commit, then tag and push the branch and the tag
+separately, so the tag push starts the release:
 
 ```bash
 git tag v1.0.0
-git push origin master --tags
+git push origin master
+git push origin v1.0.0
 ```
 
 ## Manual end-to-end check
